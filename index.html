@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Preflop IQ: drill tournament preflop ranges for 2-9 players and 10-100bb stacks, with Nash-solved push/fold ranges and an explanation after every hand.">
+<title>Preflop IQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* base reset (the hosted artifact supplied this; standalone pages need it) */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Layout: a live 8-seat table on the left, a coaching panel on the right; stacks to one column on phones. */
+:root{
+  --bg:#eceff1; --surface:#ffffff; --surface-2:#f3f5f6; --ink:#15191c; --muted:#58626a; --line:#d3d9dd;
+  --felt:#1d5946; --felt-hi:#2b725a; --rail:#3b2c23; --on-felt:#eaf3ef; --on-felt-dim:#a9c4b9;
+  --seat:#f7f9f8; --seat-ink:#15191c; --seat-dim:#6d8a7f;
+  --raise:#c23a2e; --raise-ink:#ffffff; --call:#2a61a5; --call-ink:#ffffff; --fold-bg:#e2e6e9; --fold-ink:#48525a;
+  --good:#1c7c45; --bad:#b5322a; --gold:#e2b13b; --gold-ink:#2a2006;
+  --card:#fbfbf8; --card-edge:#c9cfd4; --spade:#1b1f23; --heart:#c8312a; --diamond:#2156b3; --club:#22804a;
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1316; --surface:#181d21; --surface-2:#20262b; --ink:#e7ecef; --muted:#98a3ab; --line:#2d353b;
+  --felt:#15443a; --felt-hi:#1f5a4b; --rail:#261c16; --on-felt:#e3efe9; --on-felt-dim:#8fb0a3;
+  --seat:#232b30; --seat-ink:#e7ecef; --seat-dim:#6f8980;
+  --raise:#d9493d; --call:#3f7fd0; --fold-bg:#2a3137; --fold-ink:#b7c0c7;
+  --good:#4cc07e; --bad:#ef6d62; --card-edge:#8e979e; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1316; --surface:#181d21; --surface-2:#20262b; --ink:#e7ecef; --muted:#98a3ab; --line:#2d353b;
+  --felt:#15443a; --felt-hi:#1f5a4b; --rail:#261c16; --on-felt:#e3efe9; --on-felt-dim:#8fb0a3;
+  --seat:#232b30; --seat-ink:#e7ecef; --seat-dim:#6f8980;
+  --raise:#d9493d; --call:#3f7fd0; --fold-bg:#2a3137; --fold-ink:#b7c0c7;
+  --good:#4cc07e; --bad:#ef6d62; --card-edge:#8e979e; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4vw,2.5rem);line-height:1}
+h2{font-size:1.35rem}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px}
+.sub{margin:6px 0 0;color:var(--muted);font-size:.9rem}
+.scorebox{display:flex;align-items:center;gap:16px 22px;flex-wrap:wrap}
+.iq{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 16px 10px 14px}
+.iqnum{font-family:var(--f-display);font-weight:700;font-size:3rem;line-height:.9;font-variant-numeric:tabular-nums;min-width:2.2ch;text-align:center}
+.iqnum.prov{color:var(--muted)}
+.iqmeta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.iqlbl{font-family:var(--f-display);font-weight:600;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.iqtier{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem}
+.iqdelta{font-family:var(--f-mono);font-size:.78rem;font-weight:600}
+.iqdelta.up{color:var(--good)}.iqdelta.down{color:var(--bad)}
+.iqmeter{position:relative;height:6px;width:150px;max-width:100%;border-radius:3px;background:linear-gradient(90deg,var(--fold-bg),var(--call) 60%,var(--gold))}
+.iqmeter i{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--surface);transform:translate(-50%,-50%)}
+.iqnote{font-size:.72rem;color:var(--muted)}
+.stats{display:flex;gap:20px;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.stat{display:flex;flex-direction:column;align-items:flex-end}
+.stat b{font-size:1.35rem;font-weight:600;line-height:1.1}
+.stat span{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.modes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.setup{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.seg{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.seglbl{font-family:var(--f-display);font-weight:600;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.segbtns{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2)}
+.segbtns button{font:500 .9rem var(--f-mono);font-variant-numeric:tabular-nums;min-width:40px;padding:6px 10px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.segbtns button:last-child{border-right:0}
+.segbtns button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.segbtns button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.cfg{font-family:var(--f-body);font-weight:400;font-size:.85rem;color:var(--muted);letter-spacing:0}
+.chip{font:inherit;font-size:.88rem;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,.act:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tough{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted);margin-left:6px;cursor:pointer}
+.main{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:880px){.main{grid-template-columns:minmax(0,1fr)}}
+.play{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* table */
+.zone{padding:26px 30px}
+.felt{position:relative;aspect-ratio:2/1;max-width:100%;border-radius:999px;background:radial-gradient(ellipse at 50% 45%,var(--felt-hi),var(--felt) 70%);border:9px solid var(--rail);box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
+@media (max-width:520px){.zone{padding:22px 22px}.felt{aspect-ratio:3/2}}
+.center{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center;color:var(--on-felt)}
+.center .pot{font-family:var(--f-mono);font-weight:600;font-size:1.05rem}
+.center .potnote{font-size:.68rem;color:var(--on-felt-dim);letter-spacing:.04em}
+.center .fmt{font-family:var(--f-display);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--on-felt-dim);margin-bottom:2px}
+.seat{position:absolute;transform:translate(-50%,-50%);min-width:62px;padding:4px 8px;border-radius:9px;background:var(--seat);color:var(--seat-ink);border:1px solid var(--line);text-align:center;line-height:1.15;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.seat .pos{display:block;font-family:var(--f-display);font-weight:700;font-size:.95rem;letter-spacing:.03em}
+.seat .stk{display:block;font-family:var(--f-mono);font-size:.66rem;color:var(--muted)}
+.seat.folded{opacity:.45}
+.seat.open{border-color:var(--raise);box-shadow:0 0 0 2px var(--raise)}
+.seat.hero{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
+.seat.hero .stk{color:var(--ink);font-weight:600}
+.bet{position:absolute;transform:translate(-50%,-50%);font-family:var(--f-mono);font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--card);color:#1b1f23;border:2px dashed #8b949b}
+.bet.raise{background:var(--raise);color:var(--raise-ink);border-color:rgba(255,255,255,.6)}
+.dealer{position:absolute;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:var(--card);color:#1b1f23;font:700 .7rem/20px var(--f-display);text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+@media (max-width:520px){.seat{min-width:50px;padding:3px 5px}.seat .pos{font-size:.82rem}.seat .stk{font-size:.6rem}}
+
+/* hand + prompt */
+.spot{display:flex;gap:16px;align-items:center}
+.cards{display:flex;gap:6px;flex-shrink:0}
+.card{width:58px;height:82px;border-radius:7px;background:var(--card);border:1px solid var(--card-edge);box-shadow:0 2px 6px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:700;line-height:1}
+.card .r{font-size:2rem}
+.card .s{font-size:1.5rem}
+.card.s-s{color:var(--spade)}.card.s-h{color:var(--heart)}.card.s-d{color:var(--diamond)}.card.s-c{color:var(--club)}
+.spotlabel{font-family:var(--f-display);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.prompt{margin:2px 0 0;font-size:1.08rem;font-weight:500;min-width:0}
+.prompt .hk{font-family:var(--f-mono);font-weight:600}
+
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.act{font:inherit;font-weight:600;padding:14px 12px;border-radius:10px;border:2px solid transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .08s}
+.act:active{transform:translateY(1px)}
+.act kbd{font-family:var(--f-mono);font-size:.68rem;font-weight:500;opacity:.75}
+.act[data-a="fold"]{background:var(--fold-bg);color:var(--fold-ink)}
+.act[data-a="call"]{background:var(--call);color:var(--call-ink)}
+.act[data-a="raise"],.act[data-a="3bet"]{background:var(--raise);color:var(--raise-ink)}
+.act:disabled{cursor:default;opacity:.45}
+.act.picked{opacity:1;outline:3px solid var(--ink);outline-offset:2px}
+.act.right{opacity:1}
+.nextrow{display:flex;justify-content:flex-end}
+.btn{font:inherit;font-weight:600;padding:10px 18px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);font-weight:500;font-size:.85rem;padding:6px 12px}
+
+/* coaching panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.verdict{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.verdict h2{font-size:1.8rem}
+.verdict.ok h2{color:var(--good)}.verdict.no h2{color:var(--bad)}
+.answerline{font-size:.92rem;color:var(--muted)}
+.answerline b{color:var(--ink)}
+.blk h3{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.blk p{margin:0;max-width:62ch}
+.blk p + p{margin-top:6px}
+.catline{font-family:var(--f-mono);font-size:.82rem;background:var(--surface-2);border-radius:8px;padding:8px 10px;line-height:1.6}
+.catline b{font-family:var(--f-body)}
+.tag{display:inline-block;font-family:var(--f-body);font-size:.75rem;font-weight:600;padding:0 7px;border-radius:5px;margin-right:4px}
+.tag.raise,.tag.t3bet{background:var(--raise);color:var(--raise-ink)}
+.tag.call{background:var(--call);color:var(--call-ink)}
+.tag.fold{background:var(--fold-bg);color:var(--fold-ink)}
+.gridwrap{overflow-x:auto}
+.grid{display:grid;grid-template-columns:repeat(13,minmax(21px,1fr));gap:2px;min-width:290px}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:clamp(8px,1.4vw,10.5px);border-radius:3px;background:var(--fold-bg);color:var(--fold-ink)}
+.cell.raise,.cell.t3bet{background:var(--raise);color:var(--raise-ink)}
+.cell.call{background:var(--call);color:var(--call-ink)}
+.cell.me{outline:3px solid var(--gold);outline-offset:0;position:relative;z-index:1;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.hint kbd{font-family:var(--f-mono);font-size:.78rem;padding:1px 5px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+
+/* progress */
+.progress{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.prhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line)}
+td.n{font-family:var(--f-mono);text-align:right;white-space:nowrap}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);min-width:80px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--good)}
+.bar span.low{background:var(--bad)}
+.foot{font-size:.8rem;color:var(--muted);max-width:80ch;margin:0}
+@media (prefers-reduced-motion:reduce){.act{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Preflop IQ</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="scorebox">
+      <div class="iq" id="iq" title="Scored on your last 100 decisions. Borderline hands count 1.5x; calling when the chart says 3-bet (or the reverse) earns partial credit."></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </header>
+
+  <div class="setup">
+    <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
+    <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+  </div>
+
+  <nav class="modes" aria-label="Which spots to drill">
+    <button class="chip" data-mode="all" id="m-all">All spots</button>
+    <button class="chip" data-mode="rfi" id="m-rfi">Opening</button>
+    <button class="chip" data-mode="vs" id="m-vs">Facing a raise</button>
+    <label class="tough" for="tough"><input type="checkbox" id="tough"> Borderline hands only</label>
+  </nav>
+
+  <main class="main">
+    <section class="play">
+      <div class="zone"><div class="felt" id="felt"></div></div>
+      <div class="spot">
+        <div class="cards" id="cards"></div>
+        <div style="min-width:0">
+          <div class="spotlabel" id="spotLabel"></div>
+          <p class="prompt" id="prompt"></p>
+        </div>
+      </div>
+      <div class="actions" id="actions"></div>
+      <div class="nextrow"><button class="btn" id="next" hidden>Next hand <span style="opacity:.6;font-weight:400">· Space</span></button></div>
+    </section>
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </main>
+
+  <section class="progress">
+    <div class="prhead"><h2>Accuracy by spot <span class="cfg" id="cfg"></span></h2><button class="btn ghost" id="reset">Reset stats</button></div>
+    <div class="tablewrap"><table><thead><tr><th>Spot</th><th style="text-align:right">Hands</th><th style="text-align:right">Right</th><th>Accuracy</th></tr></thead><tbody id="prog"></tbody></table></div>
+  </section>
+
+  <p class="foot"><b>10bb and 15bb</b> ranges are solved: a chip-EV Nash equilibrium for shove-or-fold play with a 1bb big-blind ante, computed from a full 169&times;169 hand-versus-hand equity table. The solve assumes at most one player calls a shove. <b>25bb and deeper</b> ranges are modeled: hands are ranked by all-in equity, weighted toward suited, connected and paired hands as stacks deepen, and each spot takes the top slice of that ranking at typical tournament frequencies. Solving those depths properly requires a full preflop solver. Every hand gets one action here; real solutions sometimes mix.</p>
+</div>
+
+<script>
+const R='23456789TJQKA';
+const NAME={A:'ace',K:'king',Q:'queen',J:'jack',T:'ten',9:'nine',8:'eight',7:'seven',6:'six',5:'five',4:'four',3:'three',2:'deuce'};
+const PLUR={A:'aces',K:'kings',Q:'queens',J:'jacks',T:'tens',9:'nines',8:'eights',7:'sevens',6:'sixes',5:'fives',4:'fours',3:'threes',2:'deuces'};
+const ri=c=>R.indexOf(c);
+const hk=(hi,lo,s)=>hi===lo?R[hi]+R[hi]:R[hi]+R[lo]+(s?'s':'o');
+const combos=k=>k.length===2?6:(k[2]==='s'?4:12);
+function info(k){const hi=ri(k[0]),lo=ri(k[1]);return{k,hi,lo,pair:hi===lo,s:k[2]==='s'}}
+
+/* 169 hands in chart order (row = first card, suited above the diagonal) */
+const HANDS=[];
+for(let a=0;a<13;a++)for(let b=0;b<13;b++){const ra=12-a,rb=12-b;HANDS.push(a===b?hk(ra,ra):a<b?hk(ra,rb,true):hk(rb,ra,false));}
+/* all-in equity vs a random hand, 100k-trial Monte Carlo, same order as HANDS */
+const EQA=[85.2,67.1,66.2,65.4,64.6,62.7,61.9,61,59.9,60,59,58.1,57.4,65.3,82.4,63.4,62.6,61.7,60,58.3,57.5,56.7,55.8,54.9,54.1,53.2,64.4,61.5,80,60.2,59.5,57.6,56,54.3,53.6,52.8,51.9,51,50.2,63.6,60.6,58.1,77.5,57.6,55.7,54,52.3,50.7,49.9,49.1,48.2,47.3,62.8,59.7,57.2,55.3,75,54,52.3,50.6,48.9,47.3,46.5,45.7,44.8,60.8,57.8,55.3,53.2,51.5,72.1,50.8,49.1,47.5,45.7,43.9,43.2,42.4,59.8,56,53.6,51.5,49.7,48.1,69.1,47.9,46.3,44.6,42.7,40.8,40.3,58.9,55.1,51.7,49.7,47.9,46.3,45.1,66.2,45.3,43.7,41.9,40,38.2,57.7,54.3,51,47.8,46.1,44.5,43.2,42.3,63.3,43.1,41.4,39.5,37.7,57.7,53.3,50.1,47.2,44.2,42.6,41.4,40.6,40,60.3,41.4,39.7,37.8,56.8,52.4,49.1,46.2,43.5,40.7,39.5,38.6,38,38.2,57,38.6,36.8,55.8,51.4,48.2,45.3,42.6,40,37.5,36.6,36.1,36.2,35.2,53.7,36,54.9,50.5,47.2,44.3,41.7,39.1,36.9,34.6,34.1,34.3,33.2,32.3,50.3];
+const EQ={};HANDS.forEach((k,i)=>EQ[k]=EQA[i]);
+/* Chip-EV Nash push/fold solutions (10bb and 15bb, 2-9 players, 1bb BB ante), solved offline
+   from a 169x169 hand-vs-hand equity matrix. Key "players-stack"; s = shove range per seat,
+   c["shover-caller"] = calling range. Each range is 169 bits in chart order, hex-packed. */
+const NASH={"2-10":{"s":["fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"3-10":{"s":["fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"ffffffcf08f10f10640c01804010120440090041001","0-2":"ffffffff38f30f70ec0c01814030120440090041001","1-2":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"4-10":{"s":["fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"ffff70c708500310240401804010120440010040001","0-2":"ffff70c708f00310240401804010120440090041001","0-3":"fffff3cf08f10730640401804010120440090041001","1-2":"ffffffcf08f10f10640c01804010120440090041001","1-3":"ffffffff38f30f70ec0c01814030120440090041001","2-3":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"5-10":{"s":["fffff0cf08f10b702c0401804010120440090041001","fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"fffe30c308500110240401804000100400010040001","0-2":"fffe30c308500110240401804000100400010040001","0-3":"ffff30c708500110240401804010120400010040001","0-4":"fffff0cf08f00330240401804010120440090040001","1-2":"ffff70c708500310240401804010120440010040001","1-3":"ffff70c708f00310240401804010120440090041001","1-4":"fffff3cf08f10730640401804010120440090041001","2-3":"ffffffcf08f10f10640c01804010120440090041001","2-4":"ffffffff38f30f70ec0c01814030120440090041001","3-4":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"6-10":{"s":["ffff70cf08d10130240401804010120400010040001","fffff0cf08f10b702c0401804010120440090041001","fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"ff0e10c108400110240401004000100400010040000","0-2":"ff0e10c108400110240401004000100400010040000","0-3":"ff0e10c108400110240401004000100400010040000","0-4":"ff3e30c108400110240401804000100400010040001","0-5":"ffff30c708d00110240401804010100400010040001","1-2":"fffe30c308500110240401804000100400010040001","1-3":"fffe30c308500110240401804000100400010040001","1-4":"ffff30c708500110240401804010120400010040001","1-5":"fffff0cf08f00330240401804010120440090040001","2-3":"ffff70c708500310240401804010120440010040001","2-4":"ffff70c708f00310240401804010120440090041001","2-5":"fffff3cf08f10730640401804010120440090041001","3-4":"ffffffcf08f10f10640c01804010120440090041001","3-5":"ffffffff38f30f70ec0c01814030120440090041001","4-5":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"7-10":{"s":["fffe30c708d00110240401004000100400010040001","ffff70cf08d10130240401804010120400010040001","fffff0cf08f10b702c0401804010120440090041001","fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"ff0e004108400110240001004000100400010040000","0-2":"ff0e004108400110240001004000100400010040000","0-3":"ff0e004108400110240001004000100400010040000","0-4":"ff0e004108400110240001004000100400010040000","0-5":"ff2e10c108400110240401004000100400010040000","0-6":"fffe30c708c00110240401804000100400010040001","1-2":"ff0e10c108400110240401004000100400010040000","1-3":"ff0e10c108400110240401004000100400010040000","1-4":"ff0e10c108400110240401004000100400010040000","1-5":"ff3e30c108400110240401804000100400010040001","1-6":"ffff30c708d00110240401804010100400010040001","2-3":"fffe30c308500110240401804000100400010040001","2-4":"fffe30c308500110240401804000100400010040001","2-5":"ffff30c708500110240401804010120400010040001","2-6":"fffff0cf08f00330240401804010120440090040001","3-4":"ffff70c708500310240401804010120440010040001","3-5":"ffff70c708f00310240401804010120440090041001","3-6":"fffff3cf08f10730640401804010120440090041001","4-5":"ffffffcf08f10f10640c01804010120440090041001","4-6":"ffffffff38f30f70ec0c01814030120440090041001","5-6":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"8-10":{"s":["ff3e30c708c00110240001004000100400010040000","fffe30c708d00110240401004000100400010040001","ffff70cf08d10130240401804010120400010040001","fffff0cf08f10b702c0401804010120440090041001","fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"f70e004108400110240001004000100400010000000","0-2":"f70e004108400110240001004000100400010000000","0-3":"f70e004108400110240001004000100400010000000","0-4":"f70e004108400110240001004000100400010000000","0-5":"f70e004108400110240001004000100400010000000","0-6":"f70e104108400110240001004000100400010040000","0-7":"ff3e30c708c00110240401004000100400010040001","1-2":"ff0e004108400110240001004000100400010040000","1-3":"ff0e004108400110240001004000100400010040000","1-4":"ff0e004108400110240001004000100400010040000","1-5":"ff0e004108400110240001004000100400010040000","1-6":"ff2e10c108400110240401004000100400010040000","1-7":"fffe30c708c00110240401804000100400010040001","2-3":"ff0e10c108400110240401004000100400010040000","2-4":"ff0e10c108400110240401004000100400010040000","2-5":"ff0e10c108400110240401004000100400010040000","2-6":"ff3e30c108400110240401804000100400010040001","2-7":"ffff30c708d00110240401804010100400010040001","3-4":"fffe30c308500110240401804000100400010040001","3-5":"fffe30c308500110240401804000100400010040001","3-6":"ffff30c708500110240401804010120400010040001","3-7":"fffff0cf08f00330240401804010120440090040001","4-5":"ffff70c708500310240401804010120440010040001","4-6":"ffff70c708f00310240401804010120440090041001","4-7":"fffff3cf08f10730640401804010120440090041001","5-6":"ffffffcf08f10f10640c01804010120440090041001","5-7":"ffffffff38f30f70ec0c01814030120440090041001","6-7":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"9-10":{"s":["ff0e30c708400110240001004000100400010040000","ff3e30c708c00110240001004000100400010040000","fffe30c708d00110240401004000100400010040001","ffff70cf08d10130240401804010120400010040001","fffff0cf08f10b702c0401804010120440090041001","fffff7cf18f30f706c140380c010120440090041001","fffffffff9f70ff1ef3c0781c130360c40090041001","fffffffffffffffffffdff9ff7fffe1ef30b3047001"],"c":{"0-1":"f30e004108400110040001004000100400010000000","0-2":"f30e004108400110040001004000100400010000000","0-3":"f30e004108400110040001004000100400010000000","0-4":"f30e004108400110040001004000100400010000000","0-5":"f30e004108400110040001004000100400010000000","0-6":"f30e004108400110040001004000100400010000000","0-7":"f70e004108400110240001004000100400010000000","0-8":"ff2e30c308400110240001004000100400010040000","1-2":"f70e004108400110240001004000100400010000000","1-3":"f70e004108400110240001004000100400010000000","1-4":"f70e004108400110240001004000100400010000000","1-5":"f70e004108400110240001004000100400010000000","1-6":"f70e004108400110240001004000100400010000000","1-7":"f70e104108400110240001004000100400010040000","1-8":"ff3e30c708c00110240401004000100400010040001","2-3":"ff0e004108400110240001004000100400010040000","2-4":"ff0e004108400110240001004000100400010040000","2-5":"ff0e004108400110240001004000100400010040000","2-6":"ff0e004108400110240001004000100400010040000","2-7":"ff2e10c108400110240401004000100400010040000","2-8":"fffe30c708c00110240401804000100400010040001","3-4":"ff0e10c108400110240401004000100400010040000","3-5":"ff0e10c108400110240401004000100400010040000","3-6":"ff0e10c108400110240401004000100400010040000","3-7":"ff3e30c108400110240401804000100400010040001","3-8":"ffff30c708d00110240401804010100400010040001","4-5":"fffe30c308500110240401804000100400010040001","4-6":"fffe30c308500110240401804000100400010040001","4-7":"ffff30c708500110240401804010120400010040001","4-8":"fffff0cf08f00330240401804010120440090040001","5-6":"ffff70c708500310240401804010120440010040001","5-7":"ffff70c708f00310240401804010120440090041001","5-8":"fffff3cf08f10730640401804010120440090041001","6-7":"ffffffcf08f10f10640c01804010120440090041001","6-8":"ffffffff38f30f70ec0c01814030120440090041001","7-8":"ffffffffffff7ff1ef3cf38740701e04c1093043001"}},"2-15":{"s":["ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"fffffffff8f70f70e50c118140301604c0091041001"}},"3-15":{"s":["ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"ffff70c708500310240401804010120440010040001","0-2":"fffff0c708f00310240401804010120440090041001","1-2":"fffffffff8f70f70e50c118140301604c0091041001"}},"4-15":{"s":["fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"ff3e30c108400110240401004000100400010040000","0-2":"ff7e30c308500110240401804000100400010040000","0-3":"ffff30c308500110240401804000100400010040001","1-2":"ffff70c708500310240401804010120440010040001","1-3":"fffff0c708f00310240401804010120440090041001","2-3":"fffffffff8f70f70e50c118140301604c0091041001"}},"5-15":{"s":["fffff0cf08f10b702c0401004000100400010040001","fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"f70e004108400110240001004000100400010000000","0-2":"f70e004108400110240001004000100400010000000","0-3":"f70e10c108400110240001004000100400010000000","0-4":"ff2e10c108400110240001004000100400010040000","1-2":"ff3e30c108400110240401004000100400010040000","1-3":"ff7e30c308500110240401804000100400010040000","1-4":"ffff30c308500110240401804000100400010040001","2-3":"ffff70c708500310240401804010120440010040001","2-4":"fffff0c708f00310240401804010120440090041001","3-4":"fffffffff8f70f70e50c118140301604c0091041001"}},"6-15":{"s":["ff2e70cf08d10130240001004000100400010040000","fffff0cf08f10b702c0401004000100400010040001","fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"f106004108400110040001004000100400000000000","0-2":"f106004108400110040001004000100400000000000","0-3":"f106004108400110040001004000100400000000000","0-4":"f30e004108400110040001004000100400000000000","0-5":"f30e004108400110040001004000100400000000000","1-2":"f70e004108400110240001004000100400010000000","1-3":"f70e004108400110240001004000100400010000000","1-4":"f70e10c108400110240001004000100400010000000","1-5":"ff2e10c108400110240001004000100400010040000","2-3":"ff3e30c108400110240401004000100400010040000","2-4":"ff7e30c308500110240401804000100400010040000","2-5":"ffff30c308500110240401804000100400010040001","3-4":"ffff70c708500310240401804010120440010040001","3-5":"fffff0c708f00310240401804010120440090041001","4-5":"fffffffff8f70f70e50c118140301604c0091041001"}},"7-15":{"s":["f70e30c708c00110040001004000100400010000000","ff2e70cf08d10130240001004000100400010040000","fffff0cf08f10b702c0401004000100400010040001","fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"f106004108400010040001004000100000000000000","0-2":"f106004108400010040001004000100000000000000","0-3":"f106004108400010040001004000100000000000000","0-4":"f106004108400010040001004000100000000000000","0-5":"f106004108400010040001004000100000000000000","0-6":"f10e004108400110040001004000100400000000000","1-2":"f106004108400110040001004000100400000000000","1-3":"f106004108400110040001004000100400000000000","1-4":"f106004108400110040001004000100400000000000","1-5":"f30e004108400110040001004000100400000000000","1-6":"f30e004108400110040001004000100400000000000","2-3":"f70e004108400110240001004000100400010000000","2-4":"f70e004108400110240001004000100400010000000","2-5":"f70e10c108400110240001004000100400010000000","2-6":"ff2e10c108400110240001004000100400010040000","3-4":"ff3e30c108400110240401004000100400010040000","3-5":"ff7e30c308500110240401804000100400010040000","3-6":"ffff30c308500110240401804000100400010040001","4-5":"ffff70c708500310240401804010120440010040001","4-6":"fffff0c708f00310240401804010120440090041001","5-6":"fffffffff8f70f70e50c118140301604c0091041001"}},"8-15":{"s":["f30e304108400110040001004000100400000000000","f70e30c708c00110040001004000100400010000000","ff2e70cf08d10130240001004000100400010040000","fffff0cf08f10b702c0401004000100400010040001","fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"f006004108400010040001004000000000000000000","0-2":"f006004108400010040001004000000000000000000","0-3":"f006004108400010040001004000000000000000000","0-4":"f006004108400010040001004000000000000000000","0-5":"f006004108400010040001004000000000000000000","0-6":"f006004108400010040001004000000000000000000","0-7":"f106004108400010040001004000100000000000000","1-2":"f106004108400010040001004000100000000000000","1-3":"f106004108400010040001004000100000000000000","1-4":"f106004108400010040001004000100000000000000","1-5":"f106004108400010040001004000100000000000000","1-6":"f106004108400010040001004000100000000000000","1-7":"f10e004108400110040001004000100400000000000","2-3":"f106004108400110040001004000100400000000000","2-4":"f106004108400110040001004000100400000000000","2-5":"f106004108400110040001004000100400000000000","2-6":"f30e004108400110040001004000100400000000000","2-7":"f30e004108400110040001004000100400000000000","3-4":"f70e004108400110240001004000100400010000000","3-5":"f70e004108400110240001004000100400010000000","3-6":"f70e10c108400110240001004000100400010000000","3-7":"ff2e10c108400110240001004000100400010040000","4-5":"ff3e30c108400110240401004000100400010040000","4-6":"ff7e30c308500110240401804000100400010040000","4-7":"ffff30c308500110240401804000100400010040001","5-6":"ffff70c708500310240401804010120440010040001","5-7":"fffff0c708f00310240401804010120440090041001","6-7":"fffffffff8f70f70e50c118140301604c0091041001"}},"9-15":{"s":["f10e104108400010040001004000100000000000000","f30e304108400110040001004000100400000000000","f70e30c708c00110040001004000100400010000000","ff2e70cf08d10130240001004000100400010040000","fffff0cf08f10b702c0401004000100400010040001","fffff1cf18f30f702c0403804010120440010040001","ffffffcf38f70ff06e340780c010320440090041001","ffffffffffffffffef7cff9ff37cfe0cd10b1043001"],"c":{"0-1":"f006004100400010040001004000000000000000000","0-2":"f006004100400010040001004000000000000000000","0-3":"f006004100400010040001004000000000000000000","0-4":"f006004100400010040001004000000000000000000","0-5":"f006004100400010040001004000000000000000000","0-6":"f006004100400010040001004000000000000000000","0-7":"f006004100400010040001004000000000000000000","0-8":"f006004108400010040001004000000000000000000","1-2":"f006004108400010040001004000000000000000000","1-3":"f006004108400010040001004000000000000000000","1-4":"f006004108400010040001004000000000000000000","1-5":"f006004108400010040001004000000000000000000","1-6":"f006004108400010040001004000000000000000000","1-7":"f006004108400010040001004000000000000000000","1-8":"f106004108400010040001004000100000000000000","2-3":"f106004108400010040001004000100000000000000","2-4":"f106004108400010040001004000100000000000000","2-5":"f106004108400010040001004000100000000000000","2-6":"f106004108400010040001004000100000000000000","2-7":"f106004108400010040001004000100000000000000","2-8":"f10e004108400110040001004000100400000000000","3-4":"f106004108400110040001004000100400000000000","3-5":"f106004108400110040001004000100400000000000","3-6":"f106004108400110040001004000100400000000000","3-7":"f30e004108400110040001004000100400000000000","3-8":"f30e004108400110040001004000100400000000000","4-5":"f70e004108400110240001004000100400010000000","4-6":"f70e004108400110240001004000100400010000000","4-7":"f70e10c108400110240001004000100400010000000","4-8":"ff2e10c108400110240001004000100400010040000","5-6":"ff3e30c108400110240401004000100400010040000","5-7":"ff7e30c308500110240401804000100400010040000","5-8":"ffff30c308500110240401804000100400010040001","6-7":"ffff70c708500310240401804010120440010040001","6-8":"fffff0c708f00310240401804010120440090041001","7-8":"fffffffff8f70f70e50c118140301604c0091041001"}}};
+function unpack(hx){const set=new Set();for(let k=0;k<169;k++){if(parseInt(hx[k>>2],16)>>(k&3)&1)set.add(HANDS[k]);}return set;}
+const nashFor=()=>NASH[`${N}-${D}`];
+
+/* ---------- range model ---------- */
+function deepScore(k){const h=info(k);let v=EQ[k];
+  if(h.pair) v+=6+(h.hi<4?2:0);
+  else{const gap=h.hi-h.lo-1;
+    if(h.s){v+=4; if(gap===0)v+=h.lo>=2?9:5;else if(gap===1)v+=h.lo>=2?6:3.5;else if(gap===2)v+=h.lo>=2?3:1.5;
+      if(h.hi===12)v+=h.lo<=3?1.5:0.5;}
+    else{ if(h.lo<8) v-=h.hi<11?2.5:1.8; if(gap===0&&h.lo>=5)v+=1; }
+  }
+  return v;}
+function shortScore(k){return EQ[k]+(k[0]===k[1]?2:0);}
+// ranking for value 3-bets: big cards first, small and middle pairs pushed down
+function valueScore(k){const h=info(k);return EQ[k]+(h.pair?(h.hi>=8?3:-5):0)+(h.s?0.5:0)+(h.lo>=8?1.5:0)+(h.hi===12&&h.lo===11?3:0);}
+const score=(k,w)=>w==='value'?valueScore(k):w*deepScore(k)+(1-w)*shortScore(k);
+function topRange(pct,w,excl){
+  const list=HANDS.slice().sort((a,b)=>score(b,w)-score(a,w));const set=new Set();let c=0;const tgt=pct/100*1326;
+  for(const k of list){if(excl&&excl.has(k))continue;if(c+combos(k)/2>tgt)break;set.add(k);c+=combos(k);}
+  return set;}
+const pctOf=set=>{let c=0;set.forEach(k=>c+=combos(k));return Math.round(c/1326*100);};
+
+const TABLES={
+  2:['BTN','BB'],3:['BTN','SB','BB'],4:['CO','BTN','SB','BB'],5:['HJ','CO','BTN','SB','BB'],
+  6:['UTG','HJ','CO','BTN','SB','BB'],7:['UTG','LJ','HJ','CO','BTN','SB','BB'],
+  8:['UTG','UTG+1','LJ','HJ','CO','BTN','SB','BB'],9:['UTG','UTG+1','UTG+2','LJ','HJ','CO','BTN','SB','BB']};
+const DEPTHS=[100,60,40,25,15,10];
+const W={100:1,60:0.8,40:0.6,25:0.3,15:0,10:0};
+// open % by players left to act [8,7,6,5,4,3,2], then SB, then heads-up button
+const OPEN={
+  100:{b:[16,19,21,26,30,39,53],sb:44,hu:80},
+  60:{b:[15,18,20,25,29,37,50],sb:42,hu:78},
+  40:{b:[14,16,19,23,27,34,46],sb:40,hu:75},
+  25:{b:[12,14,16,20,24,30,42],sb:40,hu:70},
+  15:{b:[10,11,13,15,18,23,32],sb:45,hu:60},
+  10:{b:[13,14,16,19,23,29,40],sb:55,hu:70}};
+const DEPTH_NOTE={
+  100:'At 100bb there is plenty of money behind, so small pairs and suited connectors gain value from implied odds.',
+  60:'At 60bb implied odds are still good, a little less than at 100bb.',
+  40:'At 40bb a 3-bet commits a big share of your stack, so high cards and pairs gain ground on speculative suited hands.',
+  25:'At 25bb you min-raise and often face 3-bet shoves. Speculative hands lose most of their implied odds, and high cards and pairs matter most.',
+  15:'At 15bb there is no room to raise and then fold, so the play is shove or fold. What matters is your equity when someone calls. These ranges are a solved Nash equilibrium: against them, nobody can gain by shoving or calling differently.',
+  10:'At 10bb the play is shove or fold, and the blinds and ante are a big share of your stack, so shoving ranges get wider. These ranges are a solved Nash equilibrium: against them, nobody can gain by shoving or calling differently.'};
+
+let N=8,D=100;
+const isPush=()=>D<=15;
+function openSize(pos){
+  if(isPush()) return D;
+  if(N===2) return D>=60?2.5:D>=40?2.2:2;
+  if(pos==='SB') return D>=60?3:D>=40?2.8:2.5;
+  return D>=60?2.2:D>=40?2.1:2;
+}
+function posted(pos){return pos==='BB'?1:(pos==='SB'||(N===2&&pos==='BTN'))?0.5:0;}
+function openPct(pos){
+  const names=TABLES[N],i=names.indexOf(pos),behind=N-1-i,o=OPEN[D];
+  if(N===2) return o.hu;
+  if(pos==='SB') return o.sb;
+  return o.b[Math.max(0,Math.min(6,8-behind))];
+}
+function behindOf(pos){return N-1-TABLES[N].indexOf(pos);}
+
+let SCN=[];
+function buildScenarios(){
+  const names=TABLES[N],w=W[D],push=isPush();
+  SCN=[];
+  names.slice(0,-1).forEach(p=>{
+    const set=push?unpack(nashFor().s[names.indexOf(p)]):topRange(openPct(p),w);
+    SCN.push({id:'rfi-'+p,type:'rfi',hero:p,name:`${p} ${push?'shove':'open'}`,size:openSize(p),pct:pctOf(set),
+      labels:{raise:push?'Shove':'Open',fold:'Fold'},sets:{raise:set}});
+  });
+  const spots=[];const s0=names[0];
+  if(N>=4) spots.push(['BB',s0]);
+  if(N>=5) spots.push(['CO',s0]);
+  if(N>=4) spots.push(['BTN','CO']);
+  if(N>=3) spots.push(['SB','BTN'],['BB','BTN']);
+  if(N===2) spots.push(['BB','BTN']);
+  const seen=new Set();
+  spots.forEach(([hero,op])=>{
+    const id=`vs-${hero}-${op}`;if(seen.has(id))return;seen.add(id);
+    const kind=hero==='BB'?'bb':hero==='SB'?'sb':'ip';
+    const op_pct=push?pctOf(unpack(nashFor().s[names.indexOf(op)])):openPct(op),open=openSize(op);
+    // at shove depths the BB pays the ante from its stack, so anything it's in is for one big blind less
+    const live=push&&(hero==='BB'||op==='BB')?D-1:Math.min(open,D);
+    const call=+(live-posted(hero)).toFixed(1);
+    const pot=+(2.5+live-posted(op)).toFixed(1);
+    const odds=Math.round(call/(pot+call)*100);
+    let three=new Set(),callSet=new Set(),threeTo=null;
+    if(push){
+      callSet=unpack(nashFor().c[`${names.indexOf(op)}-${names.indexOf(hero)}`]);
+    }else{
+      let tp,dp;
+      if(kind==='bb'){dp=Math.min(op_pct+{100:15,60:13,40:11,25:8}[D],85);tp=Math.max(3,op_pct*0.14);}
+      else if(kind==='sb'){tp=op_pct*(D===25?0.36:0.32);dp=tp;}
+      else{dp=op_pct*{100:.55,60:.5,40:.42,25:.34}[D];tp=Math.max(2.5,op_pct*(D===25?0.25:0.2));}
+      three=topRange(tp,'value');
+      if(D>=60) ['A5s','A4s'].forEach(k=>three.add(k));
+      if(dp>tp) callSet=topRange(dp-pctOf(three),w,three);
+      const ip=kind==='ip';
+      threeTo=D<=25?D:Math.round(open*(ip?3.2:4.4)*2)/2;
+      if(threeTo>D*0.4) threeTo=D;
+    }
+    const shove3=!push&&threeTo===D;
+    SCN.push({id,type:'vs',hero,opener:op,kind,name:`${hero} vs ${op} ${push?'shove':'open'}`,
+      open,call,pot,odds,opPct:op_pct,threeTo,
+      labels:{fold:'Fold',call:'Call','3bet':shove3?'3-bet shove':'3-bet'},
+      sets:{'3bet':three,call:callSet}});
+  });
+  SCN.forEach(s=>{
+    const g=HANDS.map(k=>actionOf(s,k)),b=[];
+    for(let i=0;i<169;i++){const r=Math.floor(i/13),c=i%13;
+      const nb=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([x,y])=>x>=0&&x<13&&y>=0&&y<13);
+      if(nb.some(([x,y])=>g[x*13+y]!==g[i]))b.push(HANDS[i]);}
+    s.border=b.length?b:HANDS;
+  });
+}
+function actionOf(s,k){
+  if(s.type==='rfi') return s.sets.raise.has(k)?'raise':'fold';
+  if(s.sets['3bet'].has(k)) return '3bet';
+  if(s.sets.call.has(k)) return 'call';
+  return 'fold';
+}
+function actionsFor(s){
+  if(s.type==='rfi') return [{a:'fold',label:'Fold',key:'F'},{a:'raise',label:isPush()?`Shove ${D}bb`:`Raise to ${s.size}bb`,key:'R'}];
+  const out=[{a:'fold',label:'Fold',key:'F'},{a:'call',label:`Call ${s.call}bb`,key:'C'}];
+  if(!isPush()) out.push({a:'3bet',label:s.threeTo===D?`3-Bet all-in ${D}bb`:`3-Bet to ${s.threeTo}bb`,key:'R'});
+  return out;
+}
+
+/* ---------- storage ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+let stats=store.get('pft-stats2',{total:0,correct:0,streak:0,best:0,per:{}});
+if(!Array.isArray(stats.hist))stats.hist=[];
+let lastDelta=null;
+const TIERS=[[135,'Solver-brained'],[120,'Shark'],[105,'Regular'],[90,'Recreational'],[0,'Fish']];
+function iqScore(){const h=stats.hist;if(!h.length)return null;let w=0,p=0;h.forEach(x=>{w+=x.w;p+=x.w*x.p;});return Math.round(25+120*p/w);}
+function renderIQ(){
+  const v=iqScore(),n=stats.hist.length,prov=n<20;
+  const tier=v===null?'':TIERS.find(t=>v>=t[0])[1];
+  const pos=v===null?0:Math.max(0,Math.min(100,(v-25)/120*100));
+  const d=lastDelta===null||lastDelta===0?'':`<span class="iqdelta ${lastDelta>0?'up':'down'}">${lastDelta>0?'+':''}${lastDelta}</span>`;
+  $('iq').innerHTML=`<div class="iqnum${prov?' prov':''}">${v===null?'\u2014':v}</div>
+  <div class="iqmeta"><span class="iqlbl">Preflop IQ</span>
+  <span class="iqtier">${v===null?'Play a hand to get scored':tier} ${d}</span>
+  <div class="iqmeter" aria-hidden="true"><i style="left:${pos}%"></i></div>
+  <span class="iqnote">${v===null?'Scale 25\u2013145 · 100 is average':prov?`Provisional · ${n} of 20 hands`:`Last ${n} decisions`}</span></div>`;
+}
+let mode=store.get('pft-mode','all');
+let tough=store.get('pft-tough',false);
+N=store.get('pft-n',8);D=store.get('pft-d',100);
+if(!TABLES[N])N=8;if(!DEPTHS.includes(D))D=100;
+const statKey=s=>`${N}-${D}-${s.id}`;
+
+/* ---------- explanations ---------- */
+function trait(h){
+  const H=R[h.hi];
+  if(h.pair){
+    if(h.hi>=10) return 'A premium pair. It is ahead of nearly every range and wants to build a big pot.';
+    if(h.hi>=8) return 'A strong pair. It is a clear value hand, though it does not love a lot of aggression from tight ranges.';
+    if(h.hi>=4) return D>=60?'A middle pair. It wins some pots unimproved, but much of its value comes from flopping a set, which happens about once in eight and a half flops.':'A middle pair. At this stack depth it is often a favorite over two overcards and a fine hand to get all-in with against wide ranges.';
+    return D>=60?'A small pair. It plays mostly for set value, which works at deep stacks because the chips behind pay you off when you hit.':'A small pair. With shallow stacks there is little money behind to win when you flop a set, so it plays mostly as a coin flip against overcards.';
+  }
+  if(h.hi===12){
+    if(h.s){
+      if(h.lo<=3) return 'A suited wheel ace. It makes the nut flush, can make a 5-high straight, and holding an ace makes AA and AK less likely for opponents. At deep stacks that makes it a favorite 3-bet bluff.';
+      if(h.lo>=8) return 'A suited ace with a big kicker: strong top pairs plus nut-flush draws.';
+      return 'A suited ace with a middling kicker. Its value is mostly the nut-flush potential and the ace itself; when it pairs the ace it is often outkicked.';
+    }
+    if(h.lo>=8) return 'An offsuit broadway ace. It makes strong top pairs, but it can be dominated by better aces when you meet resistance.';
+    return D<=25?'An offsuit ace with a weak kicker. It is poor for raising and folding, but holding an ace blocks calls and it has solid all-in equity, so it gains value as stacks get short.':'An offsuit ace with a weak kicker. When you pair the ace you are often outkicked, and there is no flush to fall back on.';
+  }
+  if(h.lo>=8) return h.s?'Suited broadway cards. They make plenty of top pairs, straights, and flushes, and they play well after the flop.':'Offsuit broadway cards. They make top pair often, but they are dominated by better kickers when you get action.';
+  if(h.s){
+    const gap=h.hi-h.lo-1;
+    if(h.hi<=8&&gap===0) return D>=60?'A suited connector. It rarely makes big pairs, but it makes straights and flushes. It needs deep stacks and position to realize its value.':'A suited connector. Its value comes from making straights and flushes, which needs deep stacks. At this depth it loses much of that value.';
+    if(h.hi<=8&&gap===1) return 'A suited one-gapper. Like a connector it plays for straights and flushes, with slightly fewer straight possibilities.';
+    if(h.hi>=9) return `A suited ${NAME[H]} with a low kicker. It has flush potential, but when you pair the ${NAME[H]} you are often outkicked.`;
+    return 'Suited but disconnected. The flush potential is the only real asset, and the high card is weak.';
+  }
+  if(h.hi>=9) return `An offsuit ${NAME[H]} with a weak kicker. It pairs the ${NAME[H]} and gets outkicked, with no flush or straight potential to compensate.`;
+  if(h.hi-h.lo<=2) return 'Offsuit connected cards. They make some straights but no flushes, and their pairs are weak. They only play in the widest spots.';
+  return 'Offsuit and disconnected. It rarely makes a strong hand and plays poorly after the flop.';
+}
+function runs(idx){const out=[];idx.sort((a,b)=>a-b);let st=null,pv=null;idx.forEach(i=>{if(st===null){st=pv=i;}else if(i===pv+1)pv=i;else{out.push([st,pv]);st=pv=i;}});if(st!==null)out.push([st,pv]);return out;}
+function catLine(s,h){
+  let name,members;
+  if(h.pair){name='Pocket pairs';members=[...Array(13).keys()].map(i=>({i,k:hk(i,i)}));}
+  else{name=`${h.s?'Suited':'Offsuit'} ${PLUR[R[h.hi]]} (${R[h.hi]}x${h.s?'s':'o'})`;members=[...Array(h.hi).keys()].map(i=>({i,k:hk(h.hi,i,h.s)}));}
+  const order=s.type==='rfi'?['raise']:['3bet','call'];
+  const parts=[];
+  order.forEach(a=>{
+    const idx=members.filter(m=>actionOf(s,m.k)===a).map(m=>m.i);
+    if(!idx.length) return;
+    const txt=runs(idx).reverse().map(([lo,hi])=>{
+      if(h.pair){const f=i=>hk(i,i);return lo===hi?f(lo):hi===12?f(lo)+'+':f(lo)+'–'+f(hi);}
+      const f=i=>hk(h.hi,i,h.s),topI=h.hi-1;
+      return lo===hi?f(lo):hi===topI?f(lo)+'+':f(hi)+'–'+f(lo);
+    }).join(', ');
+    parts.push(`<span class="tag ${a==='3bet'?'t3bet':a}">${s.labels[a]}</span>${txt}`);
+  });
+  const anyFold=members.some(m=>actionOf(s,m.k)==='fold');
+  if(!parts.length) return `<b>${name}:</b> every one folds here.`;
+  return `<b>${name}:</b><br>${parts.join('<br>')}${anyFold?'<br><span class="tag fold">Fold</span>the rest':''}`;
+}
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+function spotContext(s){
+  const push=isPush();
+  if(s.type==='rfi'){
+    const n=behindOf(s.hero);let t;
+    if(N===2) t=push?'Heads-up, the button posts the small blind and acts first. Against one opponent, with the ante in the pot, the button shoves a wide range.':'Heads-up, the button posts the small blind and acts first before the flop, then has position on every later street. With one opponent and the ante in the pot, the button opens most hands.';
+    else if(s.hero==='SB') t=push?'Only the big blind is left. With the blinds and ante in the pot, a shove from the small blind takes it down often enough to be wide.':'Only the big blind is left, but you will be out of position after the flop. Solvers mix in limps here; this trainer uses a simpler raise-or-fold strategy.';
+    else if(s.hero==='BTN') t='Only the blinds are left, and you will have position for the whole hand. With the ante, 2.5bb is in the pot before you act, so you can play wide.';
+    else if(n===3) t='Only the button and the blinds are left. Stealing works often enough that most suited hands and decent offsuit aces play.';
+    else if(n>=6) t=`${n} players are still to act, and one of them wakes up with a strong hand fairly often. Play only hands that hold up when someone ${push?'calls':'calls or 3-bets'}.`;
+    else t=`${n} players are still to act. From the middle of the table you can add more ${push?'aces, pairs and broadways':'suited hands and the better offsuit broadways'}.`;
+    return `${t} ${DEPTH_NOTE[D]} Here the ${s.hero} ${push?'shoves':'opens'} about ${s.pct}% of hands.`;
+  }
+  const after=behindOf(s.hero);
+  if(push){
+    const extra=s.kind==='bb'?'You close the action, so you can call wider than anyone else.':`${plural(after,'player')} can still wake up behind you, so call a little tighter.`;
+    return `The ${s.opener} shoves ${D}bb with about ${s.opPct}% of hands. Calling costs ${s.call}bb to win ${s.pot}bb, so you need about ${s.odds}% equity against that range. ${extra}`;
+  }
+  let t;
+  if(s.kind==='bb') t=`The ${s.opener} opens about ${s.opPct}% of hands. You close the action and need about ${s.odds}% equity to call, but you will play out of position.`+(s.opPct<30?' Against a range this tight, dominated hands still fold.':' Against a range this wide, the big blind defends a lot of hands.');
+  else if(s.kind==='sb') t=`You will be out of position, and the big blind still acts behind you. Flatting invites the big blind to squeeze or overcall at a good price, so against a ${s.opener} open (about ${s.opPct}%) the small blind plays 3-bet or fold.`;
+  else t=`The ${s.opener} opens about ${s.opPct}% of hands, and you will have position after the flop. ${plural(after,'player')} behind you can still squeeze, so don't flat too wide.`;
+  return `${t} ${DEPTH_NOTE[D]}`;
+}
+function reason(s,a,h){
+  const push=isPush();
+  if(s.type==='rfi'){
+    const n=behindOf(s.hero);
+    if(a==='raise') return push?'Shove. This hand has enough equity when called, and the blinds and ante you win when everyone folds make it profitable.':`Open. With ${plural(n,'player')} left to act, this hand wins the blinds and ante often enough and has enough strength or playability when called.`;
+    return push?'Fold. When you get called, this hand is too often in bad shape, and that costs more than the 2.5bb you would win when everyone folds.':`Fold. With ${plural(n,'player')} left to act, this hand is too often dominated or hard to play when called or 3-bet, and that costs more than the 2.5bb you would steal.`;
+  }
+  if(a==='3bet'){
+    if(D>=60&&h.s&&h.hi===12&&h.lo<=3) return '3-bet as a bluff. The ace blocks AA and AK, and the hand still has nut-flush and straight outs when called.';
+    if(s.threeTo===D) return `3-bet shove. This hand is well ahead of the ${s.opener}'s opening range, and shoving denies them the chance to see a flop.`;
+    return `3-bet for value. This hand is well ahead of the ${s.opener}'s opening range and wants to build the pot.`;
+  }
+  if(a==='call'){
+    if(push) return 'Call. This hand has enough equity against the shoving range to beat the price.';
+    if(s.kind==='bb') return 'Call. The price is good and this hand has enough equity to defend, even out of position.';
+    return 'Call. This hand plays well in position and doesn’t need to 3-bet to profit.';
+  }
+  if(push) return 'Fold. Against the shoving range this hand doesn’t have enough equity to call, even at this price.';
+  if(s.kind==='bb') return 'Fold. Even at a good price, this hand doesn’t realize enough equity out of position against this range.';
+  if(s.kind==='sb') return 'Fold. Out of position with the big blind behind, this hand is not strong enough to 3-bet, and flatting would be worse.';
+  return 'Fold. This hand is behind the opening range too often, and flatting leaves you open to a squeeze.';
+}
+
+/* ---------- rendering ---------- */
+const $=id=>document.getElementById(id);
+let cur=null,answered=false,lastKey='';
+
+function renderSetup(){
+  $('players').innerHTML=[2,3,4,5,6,7,8,9].map(n=>`<button id="pl-${n}" data-n="${n}" aria-pressed="${n===N}" aria-label="${n} players">${n}</button>`).join('');
+  $('stack').innerHTML=DEPTHS.map(d=>`<button id="st-${d}" data-d="${d}" aria-pressed="${d===D}">${d}bb</button>`).join('');
+  const os=isPush()?'every open is a shove':`opens to ${openSize('CO')}bb`;
+  $('sub').textContent=`${N===2?'Heads-up':N+'-handed'} tournament · ${D}bb effective · 1bb big-blind ante · ${os} · ${isPush()?'Nash-solved ranges':'modeled ranges'}`;
+  $('m-vs').textContent=isPush()?'Facing a shove':'Facing a raise';
+  $('cfg').textContent=`· ${N===2?'heads-up':N+'-handed'}, ${D}bb`;
+}
+function renderStats(){
+  const acc=stats.total?Math.round(stats.correct/stats.total*100)+'%':'—';
+  renderIQ();
+  $('stats').innerHTML=`<div class="stat"><b>${stats.total}</b><span>Hands</span></div><div class="stat"><b>${acc}</b><span>Accuracy</span></div><div class="stat"><b>${stats.streak}</b><span>Streak · best ${stats.best}</span></div>`;
+  $('prog').innerHTML=SCN.map(s=>{
+    const p=stats.per[statKey(s)]||{n:0,c:0};const pc=p.n?Math.round(p.c/p.n*100):null;
+    return `<tr><td>${s.name}</td><td class="n">${p.n}</td><td class="n">${p.c}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1"><span class="${pc!==null&&pc<70?'low':''}" style="width:${pc||0}%"></span></div><span class="n" style="font-family:var(--f-mono);min-width:3.5ch;text-align:right">${pc===null?'—':pc+'%'}</span></div></td></tr>`;
+  }).join('');
+}
+function renderModes(){
+  ['all','rfi','vs'].forEach(m=>$('m-'+m).setAttribute('aria-pressed',m===mode));
+  $('tough').checked=tough;
+}
+function renderTable(s){
+  const names=TABLES[N],h=names.indexOf(s.hero),o=s.opener?names.indexOf(s.opener):-1,step=360/N;
+  let html='';
+  names.forEach((p,i)=>{
+    const k=(i-h+N)%N,a=(90+step*k)*Math.PI/180;
+    const x=50+46*Math.cos(a),y=50+43*Math.sin(a);
+    const st=i===h?'hero':i===o?'open':i<h?'folded':'wait';
+    html+=`<div class="seat ${st}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><span class="pos">${p}</span><span class="stk">${st==='hero'?`You · ${D}bb`:st==='folded'?'folded':D+'bb'}</span></div>`;
+    let bet=null;
+    if(st!=='folded'){if(i===o)bet=isPush()?'All-in':s.open;else if(posted(p))bet=posted(p);}
+    if(bet!==null){const cx=50+29*Math.cos(a),cy=50+25*Math.sin(a);html+=`<div class="bet ${i===o?'raise':''}" style="left:${cx.toFixed(2)}%;top:${cy.toFixed(2)}%">${bet}</div>`;}
+    if(p==='BTN'){const b=a-(N<=3?0.5:0.34);html+=`<div class="dealer" style="left:${(50+35*Math.cos(b)).toFixed(2)}%;top:${(50+31*Math.sin(b)).toFixed(2)}%">D</div>`;}
+  });
+  const pot=s.type==='rfi'?2.5:s.pot;
+  html+=`<div class="center"><div class="fmt">${N===2?'Heads-up':N+'-max'} · ${D}bb</div><div class="pot">Pot ${pot}bb</div><div class="potnote">incl. 1bb ante</div></div>`;
+  $('felt').innerHTML=html;
+}
+function dealCards(k){
+  const suits=['s','h','d','c'].sort(()=>Math.random()-.5);
+  const h=info(k);const s1=suits[0],s2=h.s?suits[0]:suits[1];
+  const sym={s:'♠',h:'♥',d:'♦',c:'♣'};
+  return [[R[h.hi],s1],[R[h.lo],s2]].map(([r,s])=>`<div class="card s-${s}"><span class="r">${r==='T'?'10':r}</span><span class="s">${sym[s]}</span></div>`).join('');
+}
+function renderPanelBefore(s){
+  $('panel').innerHTML=`<div class="blk"><h3>The spot</h3><p>${spotContext(s)}</p></div>
+  <p class="hint">Pick an action to see the answer, why it's right, and the full range chart for this spot.</p>
+  <p class="hint">Keys: <kbd>F</kbd> fold${s.type==='vs'?' · <kbd>C</kbd> call':''}${s.type==='rfi'||!isPush()?` · <kbd>R</kbd> ${s.type==='vs'?'3-bet':isPush()?'shove':'raise'}`:''} · <kbd>Space</kbd> next hand</p>`;
+}
+function gridHTML(s,k){
+  let g='';HANDS.forEach(x=>{const a=actionOf(s,x);g+=`<div class="cell ${a==='3bet'?'t3bet':a==='fold'?'':a}${x===k?' me':''}" title="${x}">${x}</div>`;});
+  const acts=s.type==='rfi'?['raise','fold']:[...(s.sets['3bet'].size?['3bet']:[]),...(s.sets.call.size?['call']:[]),'fold'];
+  const leg=acts.map(a=>{let c=0;HANDS.forEach(x=>{if(actionOf(s,x)===a)c+=combos(x);});
+    const col=a==='fold'?'var(--fold-bg)':a==='call'?'var(--call)':'var(--raise)';
+    return `<span><i style="background:${col}"></i>${s.labels[a]} ${(c/1326*100).toFixed(1)}%</span>`;}).join('');
+  return `<div class="blk"><h3>${s.name} chart · ${D}bb · ${isPush()?'Nash solution':'modeled'}</h3></div><div class="gridwrap"><div class="grid">${g}</div></div><div class="legend">${leg}</div>`;
+}
+function renderPanelAfter(s,k,pick,right){
+  const ok=pick===right,h=info(k);
+  $('panel').innerHTML=`<div class="verdict ${ok?'ok':'no'}"><h2>${ok?'Correct':'Not quite'}</h2><span class="answerline">You: <b>${s.labels[pick]}</b> · Chart: <b>${s.labels[right]}</b> with <b>${k}</b></span></div>
+  <div class="blk"><h3>The play</h3><p>${reason(s,right,h)}</p></div>
+  <div class="blk"><h3>The hand</h3><p>${trait(h)}</p></div>
+  <div class="blk"><h3>The spot</h3><p>${spotContext(s)}</p></div>
+  <div class="catline">${catLine(s,h)}</div>
+  ${gridHTML(s,k)}`;
+}
+function pickScenario(){
+  let pool=SCN.filter(s=>mode==='all'||s.type===mode);
+  if(!pool.length) pool=SCN;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function deal(){
+  let s,k,tries=0;
+  do{s=pickScenario();const src=(tough||Math.random()<0.6)?s.border:HANDS;k=src[Math.floor(Math.random()*src.length)];tries++;}while(s.id+k===lastKey&&tries<10);
+  lastKey=s.id+k;cur={s,k};answered=false;
+  renderTable(s);
+  $('cards').innerHTML=dealCards(k);
+  $('spotLabel').textContent=s.name;
+  const push=isPush();
+  $('prompt').innerHTML=s.type==='rfi'
+    ? `Folds to you on the <b>${s.hero}</b>. You hold <span class="hk">${k}</span>.`
+    : `The <b>${s.opener}</b> ${push?`shoves ${D}bb`:`opens to ${s.open}bb`}${TABLES[N].indexOf(s.hero)-TABLES[N].indexOf(s.opener)>1?', folds to you':''} on the <b>${s.hero}</b>. You hold <span class="hk">${k}</span>.`;
+  $('actions').innerHTML=actionsFor(s).map(x=>`<button class="act" id="act-${x.a}" data-a="${x.a}">${x.label}<kbd>${x.key}</kbd></button>`).join('');
+  $('next').hidden=true;
+  renderPanelBefore(s);
+}
+function answer(a){
+  if(answered||!cur) return;
+  const btn=$('act-'+a);if(!btn) return;
+  answered=true;
+  const right=actionOf(cur.s,cur.k),ok=a===right;
+  document.querySelectorAll('.act').forEach(b=>{b.disabled=true;if(b.dataset.a===right)b.classList.add('right');});
+  btn.classList.add('picked');
+  stats.total++;if(ok){stats.correct++;stats.streak++;stats.best=Math.max(stats.best,stats.streak);}else stats.streak=0;
+  const key=statKey(cur.s);const p=stats.per[key]||(stats.per[key]={n:0,c:0});p.n++;if(ok)p.c++;
+  const before=iqScore();
+  const pts=ok?1:(a!=='fold'&&right!=='fold'?0.4:0);
+  stats.hist.push({p:pts,w:cur.s.border.includes(cur.k)&&cur.s.border!==HANDS?1.5:1});
+  if(stats.hist.length>100)stats.hist.shift();
+  const after=iqScore();lastDelta=before===null?null:after-before;
+  store.set('pft-stats2',stats);
+  renderStats();
+  renderPanelAfter(cur.s,cur.k,a,right);
+  $('next').hidden=false;$('next').focus({preventScroll:true});
+}
+function applyConfig(){buildScenarios();renderSetup();renderStats();deal();}
+
+$('actions').addEventListener('click',e=>{const b=e.target.closest('.act');if(b)answer(b.dataset.a);});
+$('next').addEventListener('click',deal);
+$('players').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;N=+b.dataset.n;store.set('pft-n',N);applyConfig();});
+$('stack').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;D=+b.dataset.d;store.set('pft-d',D);applyConfig();});
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{mode=c.dataset.mode;store.set('pft-mode',mode);renderModes();deal();}));
+$('tough').addEventListener('change',e=>{tough=e.target.checked;store.set('pft-tough',tough);if(!answered)deal();});
+let resetArmed=false;
+$('reset').addEventListener('click',()=>{
+  if(!resetArmed){resetArmed=true;$('reset').textContent='Tap again to reset';setTimeout(()=>{resetArmed=false;$('reset').textContent='Reset stats';},3000);return;}
+  stats={total:0,correct:0,streak:0,best:0,per:{},hist:[]};lastDelta=null;store.set('pft-stats2',stats);renderStats();resetArmed=false;$('reset').textContent='Reset stats';
+});
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.target.tagName==='INPUT') return;
+  const k=e.key.toLowerCase();
+  if(!answered){
+    if(k==='f')answer('fold');
+    else if(k==='c')answer('call');
+    else if(k==='r'||k==='3')answer(cur.s.type==='rfi'?'raise':'3bet');
+  }else if(k===' '||k==='enter'||k==='n'){
+    if(e.target.tagName==='BUTTON'&&e.target.id!=='next'&&k!=='n')return;
+    e.preventDefault();deal();}
+});
+
+renderModes();applyConfig();
+</script>
+</body>
+</html>
