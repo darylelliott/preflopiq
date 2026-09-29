@@ -29,7 +29,7 @@ function render(){
   if(st.recovery&&st.user){
     box.innerHTML=`<h2>Choose a new password</h2>${noticeHTML()}
     <form id="f-newpw" class="form">
-      <label for="newpw">New password</label><input id="newpw" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="newpw">New password</label><input id="newpw" type="password" autocomplete="new-password" minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="At least 8 characters, with letters and numbers" required>
       <button class="btn" type="submit">Save password</button>
     </form>`;
     return;
@@ -93,8 +93,8 @@ function render(){
       <p class="hint">Shown on leaderboards and in clubs instead of your name. You can set it later.</p>
       <label for="plays">Where do you usually play?</label><select id="plays"><option value="">Choose one</option>${Object.entries(PLAYS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>`:''}
       <label for="email">Email</label><input id="email" type="email" autocomplete="email" required>
-      <label for="password">Password</label><input id="password" type="password" autocomplete="${view==='signup'?'new-password':'current-password'}" minlength="${view==='signup'?8:1}" required>
-      ${view==='signup'?`<p class="hint">At least 8 characters.</p>
+      <label for="password">Password</label><input id="password" type="password" autocomplete="${view==='signup'?'new-password':'current-password'}" minlength="${view==='signup'?8:1}" ${view==='signup'?'pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="At least 8 characters, with letters and numbers"':''} required>
+      ${view==='signup'?`<p class="hint">At least 8 characters, with letters and numbers.</p>
       <label class="check" for="emails"><input type="checkbox" id="emails" checked> Email me a streak reminder and a weekly recap (unsubscribe any time)</label>`:''}
       <button class="btn" type="submit">${view==='signup'?(PIQ.payments?'Start my free trial':'Create account'):'Sign in'}</button>
     </form>
