@@ -640,3 +640,7 @@ body{background-image:var(--tex-soft)}
 .dailybanner{border-left-color:var(--brass)}
 .dscore b,.streakbig b,.rankname,.tier-price,.plan-price{font-weight:800}
 .lbtable tr.me td,.ladder li.now{background:color-mix(in srgb,var(--brass) 16%,transparent)}
+/* Keep the footer rail at the bottom of short pages. */
+body{min-height:100vh;display:flex;flex-direction:column}
+body>.wrap{width:100%}
+.sitefoot{margin-top:auto}
