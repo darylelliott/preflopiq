@@ -12,7 +12,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -30,12 +30,16 @@
     <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
-<div class="wrap">
+<section class="feltband">
+  <div class="feltband-in">
   <div class="page-head">
     <span class="eyebrow">Range charts</span>
     <h1>Every spot, every hand</h1>
     <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free; Pro unlocks the rest.</p>
   </div>
+  </div>
+</section>
+<div class="wrap">
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
     <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
@@ -53,7 +57,7 @@
 </div>
 <footer class="sitefoot">
   <div class="sitefoot-in">
-    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <span class="footbrand"><span class="suits" aria-hidden="true"><i>&#9824;</i><i class="red">&#9829;</i><i class="red">&#9830;</i><i>&#9827;</i></span>Preflop IQ · Tournament preflop training, one hand at a time.</span>
     <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/daily/">Daily</a> <a href="/progress/">Progress</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/about/">About</a> <a href="/leaderboard/">Leaderboard</a> <a href="/how-it-works/">How it works</a> <a href="/achievements/">Achievements</a></nav>
   </div>
 </footer>

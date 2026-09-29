@@ -5,25 +5,29 @@ img{max-width:100%}
 [hidden]{display:none!important}
 /* Layout: a live 8-seat table on the left, a coaching panel on the right; stacks to one column on phones. */
 :root{
-  --bg:#eceff1; --surface:#ffffff; --surface-2:#f3f5f6; --ink:#15191c; --muted:#58626a; --line:#d3d9dd;
+  --bg:#e6ebe7; --surface:#ffffff; --surface-2:#f1f4f1; --ink:#15191c; --muted:#56615b; --line:#cfd8d2;
   --felt:#1d5946; --felt-hi:#2b725a; --rail:#3b2c23; --on-felt:#eaf3ef; --on-felt-dim:#a9c4b9;
   --seat:#f7f9f8; --seat-ink:#15191c; --seat-dim:#6d8a7f;
   --raise:#c23a2e; --raise-ink:#ffffff; --call:#2a61a5; --call-ink:#ffffff; --fold-bg:#e2e6e9; --fold-ink:#48525a;
   --good:#1c7c45; --bad:#b5322a; --gold:#e2b13b; --gold-ink:#2a2006;
   --card:#fbfbf8; --card-edge:#c9cfd4; --spade:#1b1f23; --heart:#c8312a; --diamond:#2156b3; --club:#22804a;
+  /* Card-room materials. They look the same in light and dark, like the real thing. */
+  --walnut:#1e1510; --walnut-2:#3b2a1f; --brass:#d6a93e; --brass-2:#f0cf7a; --cream:#f4ecdc; --heart-on-dark:#e8584f;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-soft:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --f-display:'Barlow Condensed','Arial Narrow',sans-serif;
   --f-body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
   --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0f1316; --surface:#181d21; --surface-2:#20262b; --ink:#e7ecef; --muted:#98a3ab; --line:#2d353b;
+  --bg:#0c110f; --surface:#161c19; --surface-2:#1e2522; --ink:#e7ecea; --muted:#97a39c; --line:#2b3530;
   --felt:#15443a; --felt-hi:#1f5a4b; --rail:#261c16; --on-felt:#e3efe9; --on-felt-dim:#8fb0a3;
   --seat:#232b30; --seat-ink:#e7ecef; --seat-dim:#6f8980;
   --raise:#d9493d; --call:#3f7fd0; --fold-bg:#2a3137; --fold-ink:#b7c0c7;
   --good:#4cc07e; --bad:#ef6d62; --card-edge:#8e979e; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0f1316; --surface:#181d21; --surface-2:#20262b; --ink:#e7ecef; --muted:#98a3ab; --line:#2d353b;
+  --bg:#0c110f; --surface:#161c19; --surface-2:#1e2522; --ink:#e7ecea; --muted:#97a39c; --line:#2b3530;
   --felt:#15443a; --felt-hi:#1f5a4b; --rail:#261c16; --on-felt:#e3efe9; --on-felt-dim:#8fb0a3;
   --seat:#232b30; --seat-ink:#e7ecef; --seat-dim:#6f8980;
   --raise:#d9493d; --call:#3f7fd0; --fold-bg:#2a3137; --fold-ink:#b7c0c7;
@@ -528,3 +532,111 @@ table.mastery td{border:0;padding:0}
 @media (max-width:560px){.scorebox{width:100%}.stats{gap:12px 18px}.stat{align-items:flex-start}.statlink{border-left:0;padding-left:0}}
 #d-result{display:flex;flex-direction:column;gap:16px}
 #d-intro{max-width:100%}
+
+/* =====================================================================
+   Card-room skin: walnut rail, brass stitching, felt, real card faces
+   ===================================================================== */
+body{background-image:var(--tex-soft)}
+
+/* ---------- top bar: the table rail ---------- */
+.topbar{background-color:var(--walnut);background-image:var(--tex),linear-gradient(180deg,var(--walnut-2),var(--walnut));border-bottom:0;box-shadow:0 1px 0 #0d0906,0 8px 20px rgba(0,0,0,.18)}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:6px;border-bottom:1.5px dashed rgba(214,169,62,.5);pointer-events:none}
+.topbar-in{min-height:60px}
+.brand{color:var(--cream);font-weight:800;letter-spacing:.02em;text-transform:uppercase;font-size:1.4rem}
+.brand span{color:var(--brass)}
+.brand img{width:30px;height:30px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.sitenav a{color:rgba(244,236,220,.68);padding-bottom:16px}
+.sitenav a:hover{color:var(--cream)}
+.sitenav a[aria-current="page"]{color:var(--cream);border-bottom-color:var(--brass)}
+.acctlink{color:var(--cream);border-color:rgba(214,169,62,.55);background:rgba(0,0,0,.18)}
+.acctlink:hover,.acctlink[aria-current="page"]{border-color:var(--brass)}
+@media (max-width:560px){.sitenav a{padding-bottom:12px}}
+
+/* ---------- page headings on a strip of felt ---------- */
+.feltband{position:relative;color:var(--on-felt);background-color:var(--felt);
+  background-image:var(--tex),radial-gradient(ellipse 70% 160% at 30% 0%,var(--felt-hi),var(--felt) 72%);
+  border-bottom:12px solid var(--rail);box-shadow:inset 0 10px 24px rgba(0,0,0,.28)}
+.feltband::after{content:'';position:absolute;left:0;right:0;bottom:-7px;border-bottom:1.5px dashed rgba(214,169,62,.45);pointer-events:none}
+.feltband-in{position:relative;max-width:1160px;margin:0 auto;padding-inline:16px;padding-block:34px 30px;overflow:hidden}
+.feltband-in::after{content:'\2660' / '';position:absolute;right:24px;top:50%;transform:translateY(-50%) rotate(-12deg);font-size:190px;line-height:1;color:rgba(0,0,0,.14);pointer-events:none}
+.feltband .page-head{position:relative;z-index:1}
+.feltband h1{color:#fff;font-weight:800;text-transform:uppercase;font-size:clamp(2.2rem,5.5vw,3.5rem);letter-spacing:.01em;text-shadow:0 2px 0 rgba(0,0,0,.18)}
+.feltband .eyebrow{color:var(--brass-2)}
+.feltband .lede{color:rgba(234,243,239,.82)}
+.feltband .lede a{color:#fff}
+@media (max-width:560px){.feltband-in{padding-block:24px 22px}.feltband-in::after{font-size:120px;right:8px}}
+
+/* ---------- eyebrows carry a suit ---------- */
+.eyebrow::before{content:'\2666' / '';margin-right:.45em;font-size:.95em}
+
+/* ---------- footer: the other side of the rail ---------- */
+.sitefoot{position:relative;margin-top:28px;border-top:0;color:rgba(244,236,220,.82);background-color:var(--walnut);background-image:var(--tex),linear-gradient(180deg,var(--walnut-2),var(--walnut))}
+.sitefoot::before{content:'';position:absolute;left:0;right:0;top:6px;border-top:1.5px dashed rgba(214,169,62,.45);pointer-events:none}
+.sitefoot-in{padding-block:24px 30px}
+.sitefoot a{color:rgba(244,236,220,.85)}
+.sitefoot a:hover{color:var(--brass-2)}
+.footbrand{display:inline-flex;align-items:center;gap:12px}
+.suits{display:inline-flex;gap:4px;font-size:1rem;color:var(--cream)}
+.suits i{font-style:normal}
+.suits .red{color:var(--heart-on-dark)}
+
+/* ---------- the table ---------- */
+.felt{background-color:var(--felt);background-image:var(--tex),radial-gradient(ellipse at 50% 45%,var(--felt-hi),var(--felt) 70%);
+  border:13px solid var(--rail);box-shadow:inset 0 0 0 2px rgba(0,0,0,.35),inset 0 12px 30px rgba(0,0,0,.32),0 5px 0 #140e0a,0 16px 30px rgba(0,0,0,.25)}
+.felt::before{content:'';position:absolute;inset:-8px;border-radius:999px;border:1.5px dashed rgba(214,169,62,.4);pointer-events:none;z-index:0}
+.felt::after{content:'';position:absolute;inset:19% 15%;border-radius:999px;border:2px solid rgba(255,255,255,.09);pointer-events:none;z-index:0}
+.felt>*{z-index:1}
+.center .fmt{color:var(--brass-2);opacity:.85}
+.seat{box-shadow:0 2px 0 rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.2)}
+.bet{box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.dealer{background:#fff;border:2px solid #1b1f23;font-weight:800}
+
+/* ---------- cards: real faces with corner indices ---------- */
+.card{position:relative;width:66px;height:94px;border-radius:8px;background:linear-gradient(165deg,#ffffff,#f2f1ea);border:1px solid rgba(0,0,0,.14);
+  box-shadow:0 1px 0 rgba(0,0,0,.08),0 4px 10px rgba(0,0,0,.2)}
+.card .r{font-size:1.9rem;line-height:1;margin-top:2px}
+.card .s{margin-bottom:6px}
+.card .s{font-size:1.3rem;line-height:1}
+.card .ci{position:absolute;top:4px;left:5px;display:flex;flex-direction:column;align-items:center;line-height:.9;font-family:var(--f-display);font-weight:700}
+.card .ci b{font-size:.92rem}
+.card .ci i{font-style:normal;font-size:.72rem}
+.card .ci-br{top:auto;left:auto;bottom:4px;right:5px;transform:rotate(180deg)}
+.card.back{background-color:#b8322a;border:4px solid #fff;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.22) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(255,255,255,.22) 0 2px,transparent 2px 9px)}
+
+/* ---------- chips on the buttons ---------- */
+.act{position:relative;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.act::before{content:'';position:absolute;inset:4px;border-radius:7px;border:2px dashed rgba(255,255,255,.34);pointer-events:none}
+.act[data-a="fold"]::before{border-color:color-mix(in srgb,var(--fold-ink) 22%,transparent)}
+.act:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.btn:not(.ghost):not(.ghostbtn){box-shadow:inset 0 0 0 2px var(--ink),inset 0 0 0 3px color-mix(in srgb,var(--bg) 30%,transparent)}
+.chip[aria-pressed="true"],.segbtns button[aria-pressed="true"]{background:var(--felt);border-color:var(--felt);color:#fff}
+.plan:first-child{box-shadow:0 0 0 1px var(--raise) inset}
+
+/* ---------- first visit: sit down at the table ---------- */
+.welcome{color:var(--on-felt);background-color:var(--felt);background-image:var(--tex),radial-gradient(ellipse 80% 140% at 20% 0%,var(--felt-hi),var(--felt) 72%);
+  border:12px solid var(--rail);border-radius:28px;box-shadow:inset 0 10px 26px rgba(0,0,0,.3),0 6px 0 #140e0a;position:relative}
+.welcome::after{content:'';position:absolute;inset:-7px;border-radius:22px;border:1.5px dashed rgba(214,169,62,.4);pointer-events:none}
+.welcome h2{color:#fff;font-weight:800;text-transform:uppercase}
+.welcome .eyebrow{color:var(--brass-2)}
+.welcome p{color:rgba(234,243,239,.85)}
+.welcome .hero-points b{color:#fff}
+.welcome .hero-points li::before{background:var(--brass)}
+.welcome .btn:not(.ghostbtn){background:var(--cream);color:#1a120d;border-color:var(--cream);box-shadow:inset 0 0 0 2px var(--cream),inset 0 0 0 3px rgba(0,0,0,.18)}
+.welcome .ghostbtn{background:transparent;color:var(--cream);border-color:rgba(244,236,220,.5)}
+.hero-art{background:none;border:0;height:200px;border-radius:0}
+.hero-art .card{position:absolute;width:86px;height:122px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.hero-art .card .r{font-size:2.7rem}.hero-art .card .s{font-size:1.8rem}
+.hero-art .card .ci b{font-size:1.2rem}.hero-art .card .ci i{font-size:.95rem}
+.hero-art .card.back{left:calc(50% - 120px);top:30px;transform:rotate(-16deg)}
+.hero-art .card.s-s{left:calc(50% - 58px);top:12px;transform:rotate(-4deg)}
+.hero-art .card.s-h{left:calc(50% + 4px);top:22px;transform:rotate(9deg)}
+.hero-art .stack{position:absolute;right:6%;bottom:10px;display:flex;flex-direction:column-reverse;align-items:center}
+.hero-art .stack .pchip{position:static;width:46px;height:46px;margin-top:-34px;transform:scaleY(.42)}
+@media (max-width:760px){.hero-art{height:160px}.hero-art .card{width:70px;height:100px}.hero-art .card .r{font-size:2.1rem}}
+
+/* ---------- small touches ---------- */
+.iq{border-top:3px solid var(--brass)}
+.dailybanner{border-left-color:var(--brass)}
+.dscore b,.streakbig b,.rankname,.tier-price,.plan-price{font-weight:800}
+.lbtable tr.me td,.ladder li.now{background:color-mix(in srgb,var(--brass) 16%,transparent)}

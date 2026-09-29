@@ -23,7 +23,12 @@ const TBL=(function(){
     const suits=['s','h','d','c'];for(let i=3;i>0;i--){const j=Math.floor(rand()*(i+1));[suits[i],suits[j]]=[suits[j],suits[i]];}
     const h=info(k),s1=suits[0],s2=h.s?suits[0]:suits[1];
     const sym={s:'♠',h:'♥',d:'♦',c:'♣'};
-    return [[R[h.hi],s1],[R[h.lo],s2]].map(([r,s],i)=>`<div class="card s-${s} deal" style="animation-delay:${i*90}ms"><span class="r">${r==='T'?'10':r}</span><span class="s">${sym[s]}</span></div>`).join('');
+    return [[R[h.hi],s1],[R[h.lo],s2]].map(([r,s],i)=>face(r==='T'?'10':r,s,sym[s],'deal',i*90)).join('');
+  }
+  // A card face with corner indices, like a real deck (four-color: blue diamonds, green clubs).
+  function face(rank,suit,glyph,cls='',delay=0){
+    const idx=`<b>${rank}</b><i>${glyph}</i>`;
+    return `<div class="card s-${suit} ${cls}"${delay?` style="animation-delay:${delay}ms"`:''}><span class="ci">${idx}</span><span class="r">${rank}</span><span class="s">${glyph}</span><span class="ci ci-br" aria-hidden="true">${idx}</span></div>`;
   }
   function prompt(s,k){
     return s.type==='rfi'
@@ -64,5 +69,5 @@ const TBL=(function(){
       }
     });
   }
-  return {felt,cards,prompt,actions,before,after,keysHint,bindKeys};
+  return {felt,cards,face,prompt,actions,before,after,keysHint,bindKeys};
 })();

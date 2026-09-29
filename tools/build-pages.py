@@ -13,6 +13,12 @@ def page(path, title, desc, body, scripts=()):
     nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == path else '', t) for h, t in NAV)
     fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in FOOTNAV)
     js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', *scripts])
+    # A page's heading block sits on a full-width strip of felt above its content.
+    band = ''
+    m = re.search(r'\s*<div class="page-head">.*?</div>', body, flags=re.S)
+    if m:
+        band = f'<section class="feltband">\n  <div class="feltband-in">\n  {m.group(0).strip()}\n  </div>\n</section>\n'
+        body = body[:m.start()] + body[m.end():]
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -27,7 +33,7 @@ def page(path, title, desc, body, scripts=()):
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -40,10 +46,10 @@ def page(path, title, desc, body, scripts=()):
     <a class="acctlink" id="acct" href="/account/"{' aria-current="page"' if path == '/account/' else ''} hidden>Sign in</a>
   </div>
 </header>
-{body.strip()}
+{band}{body.strip()}
 <footer class="sitefoot">
   <div class="sitefoot-in">
-    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <span class="footbrand"><span class="suits" aria-hidden="true"><i>&#9824;</i><i class="red">&#9829;</i><i class="red">&#9830;</i><i>&#9827;</i></span>Preflop IQ · Tournament preflop training, one hand at a time.</span>
     <nav aria-label="Footer">{fnav}</nav>
   </div>
 </footer>
