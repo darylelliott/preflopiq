@@ -688,3 +688,5 @@ body>.wrap{width:100%}
 .invite>span:first-child{font-family:var(--f-display);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:.8rem;color:var(--muted)}
 .invite code{font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);padding:5px 9px;border-radius:7px;overflow-wrap:anywhere;min-width:0}
 .pcard .form .rowbtns input{flex:1;min-width:160px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;cursor:pointer}
+.check input{margin-top:3px;width:auto}

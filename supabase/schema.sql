@@ -99,3 +99,11 @@ create index if not exists club_members_user on public.club_members (user_id);
 alter table public.clubs enable row level security;
 alter table public.club_members enable row level security;
 revoke all on public.clubs, public.club_members from anon, authenticated;
+
+-- ---------- Reminder emails ----------
+-- Safe to run again. Players choose these on their account page; every email has a one-click unsubscribe.
+alter table public.profiles add column if not exists timezone text;
+alter table public.profiles add column if not exists email_prefs jsonb not null default '{"streak": true, "weekly": true}'::jsonb;
+alter table public.profiles add column if not exists last_streak_email date;
+alter table public.profiles add column if not exists last_weekly_email date;
+grant update (timezone, email_prefs) on public.profiles to authenticated;

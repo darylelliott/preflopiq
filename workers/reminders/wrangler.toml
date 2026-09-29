@@ -1,0 +1,12 @@
+# Preflop IQ reminder emails. Deploy with:  npx wrangler deploy   (from this folder)
+# Then add the secrets listed in index.js:   npx wrangler secret put RESEND_API_KEY   (and the others)
+name = "preflopiq-reminders"
+main = "index.js"
+compatibility_date = "2026-09-01"
+
+[triggers]
+crons = ["2 * * * *"]   # every hour, a couple of minutes past
+
+[vars]
+SITE_URL = "https://preflopiq.pages.dev"
+EMAIL_FROM = "Preflop IQ <reminders@example.com>"   # change to an address on your verified sending domain

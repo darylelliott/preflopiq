@@ -54,6 +54,7 @@ function render(){
     box.innerHTML=`<h2>Your account</h2>${noticeHTML()}
       <dl class="acctinfo"><dt>Email</dt><dd>${esc(st.user.email)}</dd><dt>Hands played</dt><dd>${(st.profile&&st.profile.stats&&st.profile.stats.total)||0}</dd></dl>
       ${plan}
+      ${emailPrefsHTML()}
       <button class="linkbtn" id="b-signout" type="button">Sign out</button>`;
     return;
   }
@@ -80,6 +81,17 @@ function render(){
     ${view==='signin'?'<button class="linkbtn" id="b-forgot" type="button">Forgot your password?</button>':''}`;
 }
 
+function emailPrefsHTML(){
+  const p=(PIQ.state.profile&&PIQ.state.profile.email_prefs)||{streak:true,weekly:true};
+  return `<div class="planstatus"><h3>Emails</h3>
+    <label class="check" for="e-streak"><input type="checkbox" id="e-streak" data-pref="streak" ${p.streak!==false?'checked':''}> Remind me at 7 p.m. when my day streak is about to end</label>
+    <label class="check" for="e-weekly"><input type="checkbox" id="e-weekly" data-pref="weekly" ${p.weekly!==false?'checked':''}> Send a weekly recap on Sunday mornings: hands, Preflop IQ and my biggest leak</label>
+    <p class="hint">Times follow your device\u2019s time zone. Every email has a one-click unsubscribe.</p></div>`;
+}
+document.addEventListener('change',async e=>{
+  const c=e.target.closest('[data-pref]');if(!c)return;
+  try{await PIQ.setEmailPrefs({[c.dataset.pref]:c.checked});setNotice('Email settings saved.');}catch(x){c.checked=!c.checked;setNotice(x.message,'err');}
+});
 async function afterSignIn(){
   const next=params.get('next');
   if(next&&next.startsWith('checkout-')&&!PIQ.state.isPro){

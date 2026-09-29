@@ -49,9 +49,34 @@ In Cloudflare, go to **Workers & Pages → preflopiq → Settings → Variables 
 
 Then commit and push `public/config.js`. The push redeploys the site, which also picks up the new variables.
 
-## Leaderboards
+## Leaderboards and clubs
 
-`supabase/schema.sql` includes the leaderboard tables. If you ran an older copy of it, run the whole file again; it's safe to re-run. Nothing else is needed: the leaderboard uses the same Supabase keys.
+`supabase/schema.sql` includes the leaderboard, club and email-preference tables. If you ran an older copy of it, run the whole file again; it's safe to re-run. Nothing else is needed: leaderboards and clubs use the same Supabase keys.
+
+## 5. Reminder emails (optional)
+
+Two emails go out from a small scheduled Cloudflare Worker in `workers/reminders/`:
+
+- **Streak reminder** at 7 p.m. in the player's time zone, when they have a streak of 2+ days and haven't played today.
+- **Weekly recap** on Sunday at 10 a.m. local, for anyone who played in the last three weeks.
+
+Players can turn each one off on their account page or with the unsubscribe link in every email.
+
+1. **Resend:** create an account at [resend.com](https://resend.com), add your domain under **Domains** and add the DNS records it shows (sending needs a domain you own; `pages.dev` won't work). Then **API Keys → Create** and copy the key.
+2. **Pick a signing secret:** any long random string, e.g. the output of `openssl rand -hex 32`. It signs the unsubscribe links.
+3. **Pages:** add `EMAIL_SECRET` (Secret type) to **Workers & Pages → preflopiq → Settings → Variables and secrets**, with the value from step 2, so `/api/unsubscribe` can check links.
+4. **Worker:** edit `workers/reminders/wrangler.toml` and set `EMAIL_FROM` (e.g. `Preflop IQ <reminders@yourdomain.com>`) and `SITE_URL`. Then from that folder:
+
+   ```sh
+   npx wrangler login
+   npx wrangler secret put SUPABASE_URL
+   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+   npx wrangler secret put RESEND_API_KEY
+   npx wrangler secret put EMAIL_SECRET        # same value as step 3
+   npx wrangler deploy
+   ```
+
+5. **Test:** open `https://preflopiq-reminders.<your-subdomain>.workers.dev/?key=YOUR_EMAIL_SECRET`. It runs one pass and returns what it sent (usually nothing unless it's someone's 7 p.m.). Runs hourly after that; see **Workers → preflopiq-reminders → Logs**.
 
 ## 4. Test it
 

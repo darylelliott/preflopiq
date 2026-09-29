@@ -24,11 +24,13 @@
     state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;
     if(state.user){
       const [p,s]=await Promise.all([
-        sb.from('profiles').select('hands_played,stats,display_name').eq('id',state.user.id).maybeSingle(),
+        sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone').eq('id',state.user.id).maybeSingle(),
         sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
       ]);
       state.profile=p.data||{hands_played:0,stats:null};
       state.sub=s.data||null;
+      // Reminder emails go out in the player's own evening, so keep their time zone current.
+      try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz&&state.profile.timezone!==tz){state.profile.timezone=tz;sb.from('profiles').update({timezone:tz}).eq('id',state.user.id).then(()=>{});}}catch(e){}
       state.isPro=!!state.sub&&['active','trialing'].includes(state.sub.status);
       // Hands played before signing in still count toward the free limit.
       const local=localUsed();
@@ -99,6 +101,11 @@
     else a.textContent='Sign in';
   }
 
-  window.PIQ={configured,ready,state,FREE_HANDS,PRICES,client:sb,
+  async function setEmailPrefs(prefs){
+    const next={...(state.profile&&state.profile.email_prefs||{streak:true,weekly:true}),...prefs};
+    const {error}=await sb.from('profiles').update({email_prefs:next}).eq('id',state.user.id);
+    if(error)throw new Error(error.message);state.profile.email_prefs=next;return next;
+  }
+  window.PIQ={configured,ready,state,setEmailPrefs,FREE_HANDS,PRICES,client:sb,
     onChange(f){listeners.push(f);},handsUsed,handsLeft,locked,paywallOn,recordHand,saveStats,checkout,portal,refresh,signOut};
 })();
