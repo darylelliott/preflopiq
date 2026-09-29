@@ -24,7 +24,7 @@
     state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;
     if(state.user){
       const [p,s]=await Promise.all([
-        sb.from('profiles').select('hands_played,stats').eq('id',state.user.id).maybeSingle(),
+        sb.from('profiles').select('hands_played,stats,display_name').eq('id',state.user.id).maybeSingle(),
         sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
       ]);
       state.profile=p.data||{hands_played:0,stats:null};

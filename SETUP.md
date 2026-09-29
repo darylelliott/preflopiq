@@ -49,6 +49,10 @@ In Cloudflare, go to **Workers & Pages → preflopiq → Settings → Variables 
 
 Then commit and push `public/config.js`. The push redeploys the site, which also picks up the new variables.
 
+## Leaderboards
+
+`supabase/schema.sql` includes the leaderboard tables. If you ran an older copy of it, run the whole file again; it's safe to re-run. Nothing else is needed: the leaderboard uses the same Supabase keys.
+
 ## 4. Test it
 
 1. Open the site in a private window and play 25 hands. The paywall should appear on the 26th.
@@ -56,6 +60,8 @@ Then commit and push `public/config.js`. The push redeploys the site, which also
 3. At checkout, pay with Stripe's test card `4242 4242 4242 4242`, any future expiry and any CVC.
 4. You should land on your account page, which switches to **Pro** within a few seconds. The trainer should no longer be capped.
 5. On the account page, click **Manage billing** and cancel. After the period ends (or right away, if you cancel immediately in Stripe), the account returns to Free.
+
+Also finish a daily challenge while signed in, choose a leaderboard name, and check that your score appears on `/leaderboard/`.
 
 If Pro doesn't switch on, check **Stripe → Developers → Webhooks → your endpoint** for failed deliveries; the error message comes from the site.
 

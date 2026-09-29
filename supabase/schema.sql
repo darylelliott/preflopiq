@@ -57,3 +57,25 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ---------- Leaderboards (added with the daily challenge) ----------
+-- Safe to run again on an existing project.
+alter table public.profiles add column if not exists display_name text;
+alter table public.profiles drop constraint if exists display_name_format;
+alter table public.profiles add constraint display_name_format
+  check (display_name is null or display_name ~ '^[A-Za-z0-9 _.\-]{3,20}$');
+create unique index if not exists profiles_display_name_key on public.profiles (lower(display_name));
+grant update (display_name) on public.profiles to authenticated;
+
+-- One row per player per day. Written only by /api/daily-submit, which re-scores the answers.
+create table if not exists public.daily_scores (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  day date not null,
+  score smallint not null check (score between 0 and 10),
+  picks text[] not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create index if not exists daily_scores_day on public.daily_scores (day, score desc, created_at);
+alter table public.daily_scores enable row level security;
+revoke all on public.daily_scores from anon, authenticated;

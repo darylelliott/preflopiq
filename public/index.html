@@ -21,19 +21,42 @@
     <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
     <nav class="sitenav" aria-label="Main">
       <a href="/" aria-current="page">Trainer</a>
+      <a href="/daily/">Daily</a>
+      <a href="/progress/">Progress</a>
       <a href="/charts/">Charts</a>
       <a href="/pricing/">Pricing</a>
-      <a href="/how-it-works/">How it works</a>
       <a href="/about/">About</a>
     </nav>
     <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
 <div class="wrap">
+  <section class="welcome" id="hero" hidden aria-labelledby="hero-title">
+    <div class="hero-text">
+      <span class="eyebrow">Tournament preflop trainer</span>
+      <h2 id="hero-title">Know your preflop ranges cold.</h2>
+      <p>You get a real tournament spot. You make the call. Then you see the right play, why it's right, and the whole chart.</p>
+      <ul class="hero-points">
+        <li><b>Every table</b> from heads-up to 9-handed, 100bb down to a 10bb shove</li>
+        <li><b>Solved push-fold ranges</b> at short stacks, not guesswork</li>
+        <li><b>A Preflop IQ score</b>, ranks and a daily challenge to keep you sharp</li>
+      </ul>
+      <div class="hero-cta"><button class="btn" id="hero-start" type="button">Deal me in</button><a class="btn ghostbtn" href="/daily/">Try today's challenge</a></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="card s-s"><span class="r">A</span><span class="s">&#9824;</span></div>
+      <div class="card s-h"><span class="r">K</span><span class="s">&#9829;</span></div>
+      <span class="pchip pchip-black"></span><span class="pchip pchip-green"></span><span class="pchip pchip-red"></span>
+    </div>
+  </section>
+
+  <div class="dailybanner" id="dailybanner"></div>
+
   <header class="top">
     <div>
       <h1>Trainer</h1>
       <p class="sub" id="sub"></p>
+      <p class="rankline" id="rankline"></p>
     </div>
     <div class="scorebox">
       <div class="iq" id="iq" title="Scored on your last 100 decisions. Borderline hands count 1.5x; calling when the chart says 3-bet (or the reverse) earns partial credit."></div>
@@ -51,11 +74,15 @@
     <button class="chip" data-mode="rfi" id="m-rfi">Opening</button>
     <button class="chip" data-mode="vs" id="m-vs">Facing a raise</button>
     <label class="tough" for="tough"><input type="checkbox" id="tough"> Borderline hands only</label>
+    <label class="tough" for="clock" title="7 seconds per decision. If time runs out, your hand is folded."><input type="checkbox" id="clock"> Shot clock</label>
+    <button class="chip soundbtn" id="sound" type="button" aria-pressed="false">Sound off</button>
   </nav>
+  <div class="focusbar" id="focusbar" hidden></div>
 
   <main class="main">
     <section class="play">
       <div class="zone"><div class="felt" id="felt"></div></div>
+      <div class="clockbar" id="clockbar" hidden></div>
       <div class="spot">
         <div class="cards" id="cards"></div>
         <div style="min-width:0">
@@ -64,10 +91,12 @@
         </div>
       </div>
       <div class="actions" id="actions"></div>
-      <div class="nextrow"><button class="btn" id="next" hidden>Next hand <span style="opacity:.6;font-weight:400">· Space</span></button></div>
+      <div class="nextrow"><button class="btn nextbtn" id="next" hidden>Next hand <span style="opacity:.6;font-weight:400">· Space</span></button></div>
     </section>
     <section class="panel" id="panel" aria-live="polite"></section>
   </main>
+
+  <div class="leakcall" id="leak" hidden></div>
 
   <section class="progress">
     <div class="prhead"><h2>Accuracy by spot <span class="cfg" id="cfg"></span></h2><button class="btn ghost" id="reset">Reset stats</button></div>
@@ -79,7 +108,7 @@
 <footer class="sitefoot">
   <div class="sitefoot-in">
     <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
-    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a> <a href="/achievements/">Achievements</a></nav>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/daily/">Daily</a> <a href="/progress/">Progress</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/about/">About</a> <a href="/leaderboard/">Leaderboard</a> <a href="/how-it-works/">How it works</a> <a href="/achievements/">Achievements</a></nav>
   </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
@@ -87,6 +116,10 @@
 <script src="/auth.js"></script>
 <script src="/engine.js"></script>
 <script src="/achievements.js"></script>
+<script src="/player.js"></script>
+<script src="/fx.js"></script>
+<script src="/table.js"></script>
+<script src="/daily-core.js"></script>
 <script src="/trainer.js"></script>
 </body>
 </html>

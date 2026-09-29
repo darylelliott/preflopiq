@@ -3,6 +3,7 @@
      a.u    {id: unlockedAtMs}
      a.c    counters
      a.t    table sizes played      a.d  stack depths played      a.days  dates trained (YYYY-MM-DD)
+     a.c.daily / dailyPerfect / grudge / clock / dayBest   habit counters
    Chips mark difficulty, like casino denominations: white 1, red 5, green 25, black 100. */
 (function(){
   const CHIPS={white:{value:1,label:'White chip'},red:{value:5,label:'Red chip'},green:{value:25,label:'Green chip'},black:{value:100,label:'Black chip'}};
@@ -38,6 +39,13 @@
     {id:'every-seat',group:'Table time',chip:'green',name:'Every Seat in the House',desc:'Play at every table size, heads-up to 9-handed.',goal:TABLE_SIZES.length,value:a=>(a.t||[]).length},
     {id:'deep-to-short',group:'Table time',chip:'red',name:'Deep to Short',desc:'Play at every stack depth, 100bb down to 10bb.',goal:DEPTHS.length,value:a=>(a.d||[]).length},
     {id:'seven-card-stud',group:'Table time',chip:'green',name:'Seven-Card Stud',desc:'Train on seven different days.',goal:7,value:a=>(a.days||[]).length},
+    // ---- habits
+    {id:'daily-grind',group:'Habits',chip:'white',name:'Daily Grind',desc:'Finish a daily challenge.',goal:1,value:a=>cnt(a,'daily')},
+    {id:'royal-flush',group:'Habits',chip:'black',name:'Royal Flush',desc:'Score 10 out of 10 on a daily challenge.',goal:1,value:a=>cnt(a,'dailyPerfect')},
+    {id:'standing-game',group:'Habits',chip:'green',name:'Standing Game',desc:'Keep a 7-day streak.',goal:7,value:a=>cnt(a,'dayBest')},
+    {id:'beat-the-clock',group:'Habits',chip:'green',name:'Beat the Clock',desc:'Get 50 hands right on the shot clock.',goal:50,value:a=>cnt(a,'clock')},
+    {id:'gold-standard',group:'Habits',chip:'green',name:'Gold Standard',desc:'Earn gold mastery in any spot.',goal:1,value:(a,s)=>typeof PL==='undefined'?0:Object.values(s.per||{}).filter(p=>PL.medal(p)==='gold').length},
+    {id:'grudge-match',group:'Habits',chip:'red',name:'Grudge Match',desc:'Beat a friend\u2019s score on their challenge link.',goal:1,value:a=>cnt(a,'grudge')},
     // ---- hidden until earned
     {id:'welcome',group:'Hidden',chip:'white',hidden:true,name:'Welcome to Poker',desc:'Get one wrong. Everyone does.',test:c=>!c.ok},
     {id:'late-reg',group:'Hidden',chip:'white',hidden:true,name:'Late Reg',desc:'Play a hand between midnight and 5 a.m.',test:c=>c.hour<5},
@@ -50,7 +58,7 @@
     a.u=a.u||{};a.c=a.c||{};a.t=a.t||[];a.d=a.d||[];a.days=a.days||[];
     return a;
   }
-  const bump=(a,k)=>{a.c[k]=(a.c[k]||0)+1;};
+  const inc=(a,k)=>{a.c[k]=(a.c[k]||0)+1;};
   const addOnce=(arr,v,cap)=>{if(!arr.includes(v)&&(!cap||arr.length<cap))arr.push(v);};
   function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 
@@ -59,19 +67,27 @@
     const a=ensure(stats),c={...ctx,hour:new Date().getHours()};
     addOnce(a.t,c.N);addOnce(a.d,c.D);addOnce(a.days,today(),7);
     if(c.ok){
-      if(c.type==='rfi'&&c.push&&c.right==='raise')bump(a,'shove');
-      if(c.type==='rfi'&&c.hero==='BTN'&&c.right==='raise')bump(a,'btn');
-      if(c.type==='vs'&&c.hero==='BB'&&c.right!=='fold')bump(a,'bbdef');
-      if(c.suited&&c.hi-c.lo===1&&c.hi>=3&&c.hi<=9&&c.right!=='fold')bump(a,'sc');
-      if(c.border)bump(a,'border');
+      if(c.type==='rfi'&&c.push&&c.right==='raise')inc(a,'shove');
+      if(c.type==='rfi'&&c.hero==='BTN'&&c.right==='raise')inc(a,'btn');
+      if(c.type==='vs'&&c.hero==='BB'&&c.right!=='fold')inc(a,'bbdef');
+      if(c.suited&&c.hi-c.lo===1&&c.hi>=3&&c.hi<=9&&c.right!=='fold')inc(a,'sc');
+      if(c.border)inc(a,'border');
     }
-    if(c.N===2)bump(a,'hu');
+    if(c.N===2)inc(a,'hu');
     const fresh=[];
     for(const x of LIST){
       if(a.u[x.id])continue;
       const hit=x.goal?x.value(a,stats)>=x.goal:x.test(c,stats);
       if(hit){a.u[x.id]=Date.now();fresh.push(x);}
     }
+    return fresh;
+  }
+
+  // Counters bumped outside a hand (daily results, the shot clock), then a check of counted goals.
+  function bump(stats,key,n=1){const a=ensure(stats);a.c[key]=(a.c[key]||0)+n;}
+  function sweep(stats){
+    const a=ensure(stats),fresh=[];
+    for(const x of LIST){if(a.u[x.id]||!x.goal)continue;if(x.value(a,stats)>=x.goal){a.u[x.id]=Date.now();fresh.push(x);}}
     return fresh;
   }
 
@@ -96,8 +112,10 @@
   function next(){
     if(showing||!queue.length)return;
     showing=true;const x=queue.shift();
-    const el=document.createElement('a');el.className='toast';el.href='/achievements/#'+x.id;
-    el.innerHTML=`<span class="chip chip-${x.chip}" aria-hidden="true"></span><span class="toast-body"><span class="toast-kicker">${x.summary?'Achievements unlocked':`Achievement unlocked · ${CHIPS[x.chip].label}`}</span><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></span>`;
+    const el=document.createElement('a');el.className='toast';el.href=x.href||('/achievements/'+(x.id?'#'+x.id:''));
+    const kicker=x.kicker||(x.summary?'Achievements unlocked':`Achievement unlocked · ${CHIPS[x.chip].label}`);
+    el.innerHTML=`<span class="pchip pchip-${x.chip}" aria-hidden="true"></span><span class="toast-body"><span class="toast-kicker">${esc(kicker)}</span><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></span>`;
+    if(typeof FX!=='undefined')FX.play('unlock');
     toastHost().appendChild(el);
     requestAnimationFrame(()=>el.classList.add('in'));
     setTimeout(()=>{el.classList.remove('in');el.classList.add('out');setTimeout(()=>{el.remove();showing=false;next();},320);},4200);
@@ -121,5 +139,5 @@
     return into;
   }
 
-  window.ACH={LIST,CHIPS,BY_ID,ensure,record,progress,summary,celebrate,merge};
+  window.ACH={LIST,CHIPS,BY_ID,ensure,record,bump,sweep,progress,summary,celebrate,merge};
 })();

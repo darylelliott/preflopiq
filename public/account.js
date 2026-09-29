@@ -85,6 +85,7 @@ async function afterSignIn(){
   if(next&&next.startsWith('checkout-')&&!PIQ.state.isPro){
     try{await PIQ.checkout(next.slice(9));}catch(e){setNotice(e.message,'err');}
   }else if(next==='trainer'){location.href='/';}
+  else if(next==='daily'){location.href='/daily/';}
 }
 
 document.addEventListener('submit',async e=>{

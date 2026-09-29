@@ -3,13 +3,15 @@
 import re, pathlib
 here = pathlib.Path(__file__).resolve().parent
 root = here.parent / 'public'
-NAV = [('/', 'Trainer'), ('/charts/', 'Charts'), ('/pricing/', 'Pricing'), ('/how-it-works/', 'How it works'), ('/about/', 'About')]
+NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/charts/', 'Charts'), ('/pricing/', 'Pricing'), ('/about/', 'About')]
+FOOTNAV = NAV + [('/leaderboard/', 'Leaderboard'), ('/how-it-works/', 'How it works'), ('/achievements/', 'Achievements')]
+PLAYER = ['/engine.js', '/achievements.js', '/player.js', '/fx.js']
 SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'
 
 def page(path, title, desc, body, scripts=()):
     cur = ' aria-current="page"'
     nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == path else '', t) for h, t in NAV)
-    fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in NAV + [('/achievements/', 'Achievements')])
+    fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in FOOTNAV)
     js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', *scripts])
     return f'''<!doctype html>
 <html lang="en">
@@ -56,7 +58,7 @@ tb = re.sub(r'<p class="foot">.*?</p>',
   '<p class="foot">10bb and 15bb ranges are solved Nash equilibria; 25bb and deeper are modeled. <a href="/how-it-works/#ranges">How the ranges are built</a>.</p>', tb, flags=re.S)
 (root / 'index.html').write_text(page('/', 'Preflop IQ · Tournament Preflop Trainer',
   'Drill tournament preflop ranges for 2-9 players and 10-100bb stacks. Nash-solved push/fold ranges, an explanation after every hand, and a Preflop IQ score.',
-  tb, ['/engine.js', '/achievements.js', '/trainer.js']))
+  tb, PLAYER + ['/table.js', '/daily-core.js', '/trainer.js']))
 
 # ---------- charts ----------
 charts_body = '''
@@ -95,7 +97,7 @@ how = '''
     <p class="lede">Preflop IQ tests one decision at a time: the first action you make before the flop in a tournament. Here's the game it models, how every chart is built, and how your score is calculated.</p>
   </div>
   <nav class="toc" aria-label="On this page">
-    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#glossary">Glossary</a>
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
   </nav>
   <article class="prose">
     <h2 id="format">The format</h2>
@@ -158,6 +160,16 @@ how = '''
       <li>Progress is saved in your browser. With an account, it's also saved to your account and follows you to other devices.</li>
       <li><b>Achievements</b> unlock as you play, from your first hand to a 25-hand streak. Each is worth a casino chip by difficulty, from a white 1 to a black 100. See your <a href="/achievements/">trophy case</a>.</li>
       <li>The first 25 hands are free. After that, <a href="/pricing/">Pro</a> keeps the trainer going.</li>
+    </ul>
+
+    <h2 id="daily">Daily challenge, streaks and ranks</h2>
+    <ul>
+      <li><b>Daily challenge:</b> ten hands in mixed formats, the same for every player that day. It's free, it doesn't use your free trainer hands, and you can share your result or challenge a friend to the same hands.</li>
+      <li><b>Day streak:</b> a day counts once you answer ten hands, in the trainer or the daily challenge. One missed day each week is covered by a freeze.</li>
+      <li><b>Ranks:</b> seven rungs from Home Game to Super High Roller, earned with hands played and your best Preflop IQ. Your rank never drops.</li>
+      <li><b>Spot mastery:</b> bronze for 70% over 10 hands in a spot, silver for 80% over 25, gold for 90% over 50.</li>
+      <li><b>Leak finder:</b> the spots where you miss the most, with a button to drill only that spot.</li>
+      <li><b>Shot clock:</b> an optional seven seconds per decision. When time runs out your hand is folded, as it would be at a live table.</li>
     </ul>
 
     <h2 id="glossary">Glossary</h2>
@@ -311,5 +323,79 @@ ach = """
 (root / 'achievements').mkdir(exist_ok=True)
 (root / 'achievements' / 'index.html').write_text(page('/achievements/', 'Achievements · Preflop IQ',
   'Your Preflop IQ trophy case: poker-themed achievements for streaks, sharp folds, well-timed shoves and hours at the table.',
-  ach, ['/achievements.js', '/achievements-page.js']))
+  ach, ['/achievements.js', '/player.js', '/achievements-page.js']))
+
+# ---------- daily challenge ----------
+daily = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow" id="d-eyebrow">Daily challenge</span>
+    <h1 id="d-title">Daily Challenge</h1>
+    <p class="lede" id="d-lede"></p>
+  </div>
+  <div class="vsbanner" id="d-vs" hidden></div>
+  <section id="d-intro" hidden></section>
+  <section id="d-play" hidden>
+    <div class="ddots" id="d-dots"></div>
+    <main class="main">
+      <section class="play">
+        <div class="zone"><div class="felt" id="felt"></div></div>
+        <div class="spot">
+          <div class="cards" id="cards"></div>
+          <div style="min-width:0"><div class="spotlabel" id="spotLabel"></div><p class="prompt" id="prompt"></p></div>
+        </div>
+        <div class="actions" id="actions"></div>
+        <div class="nextrow"><button class="btn nextbtn" id="next" hidden>Next hand</button></div>
+      </section>
+      <section class="panel" id="panel" aria-live="polite"></section>
+    </main>
+  </section>
+  <section id="d-result" hidden></section>
+</div>"""
+(root / 'daily').mkdir(exist_ok=True)
+(root / 'daily' / 'index.html').write_text(page('/daily/', 'Daily Challenge · Preflop IQ',
+  'Ten tournament preflop hands a day, the same for everyone. Free to play, share your score, and challenge a friend to the same hands.',
+  daily, PLAYER + ['/table.js', '/daily-core.js', '/leaderboard.js', '/daily.js']))
+
+# ---------- progress ----------
+progress = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Progress</span>
+    <h1>Your game, at a glance</h1>
+    <p class="lede">Your rank, your streak, where you're leaking chips, and which spots you've mastered.</p>
+  </div>
+  <section id="p-rank" aria-label="Rank"></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-streak"><h2 id="h-streak">Day streak</h2><div id="p-streak"></div></section>
+    <section class="pcard" aria-labelledby="h-leaks"><h2 id="h-leaks">Your leaks</h2><p class="hint">The spots where you miss the most. Drill one and watch it climb.</p><div id="p-leaks"></div></section>
+  </div>
+  <section class="pcard" aria-labelledby="h-mastery"><h2 id="h-mastery">Spot mastery</h2><div id="p-mastery"></div></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-card"><h2 id="h-card">Your card</h2><p class="hint">A snapshot of your game to post wherever your poker friends are.</p>
+      <canvas id="card-canvas" class="sharecard" width="1200" height="630" role="img" aria-label="Your Preflop IQ card"></canvas>
+      <div class="rowbtns"><button class="btn" id="card-download" type="button">Download image</button><button class="btn ghostbtn" id="card-share" type="button" hidden>Share</button></div>
+    </section>
+    <section class="pcard" aria-labelledby="h-themes"><h2 id="h-themes">Table themes</h2><p class="hint">Unlock new felts as you climb.</p><div id="p-themes"></div>
+      <h2 class="mt">Trophy case</h2><p id="p-trophy"></p><a class="btn ghostbtn" href="/achievements/">See all achievements</a></section>
+  </div>
+</div>"""
+(root / 'progress').mkdir(exist_ok=True)
+(root / 'progress' / 'index.html').write_text(page('/progress/', 'Your Progress · Preflop IQ',
+  'Your Preflop IQ rank, day streak, biggest leaks, spot mastery and a shareable card.', progress, PLAYER + ['/progress.js']))
+
+# ---------- leaderboard ----------
+lb = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Leaderboard</span>
+    <h1>Daily challenge leaderboard</h1>
+    <p class="lede">Today's top scores and this week's totals. Every score is checked on our server against the day's hands.</p>
+  </div>
+  <div id="lbpage"><p class="hint">Loading…</p></div>
+  <a class="cta" href="/daily/">Play today's challenge</a>
+</div>"""
+(root / 'leaderboard').mkdir(exist_ok=True)
+(root / 'leaderboard' / 'index.html').write_text(page('/leaderboard/', 'Leaderboard · Preflop IQ',
+  'Daily and weekly leaderboards for the Preflop IQ daily challenge.', lb, PLAYER + ['/daily-core.js', '/leaderboard.js', '/leaderboard-page.js']))
 print('ok')

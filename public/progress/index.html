@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Your Progress · Preflop IQ</title>
+<meta name="description" content="Your Preflop IQ rank, day streak, biggest leaks, spot mastery and a shareable card.">
+<meta property="og:title" content="Your Progress · Preflop IQ">
+<meta property="og:description" content="Your Preflop IQ rank, day streak, biggest leaks, spot mastery and a shareable card.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
+    <nav class="sitenav" aria-label="Main">
+      <a href="/">Trainer</a>
+      <a href="/daily/">Daily</a>
+      <a href="/progress/" aria-current="page">Progress</a>
+      <a href="/charts/">Charts</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/about/">About</a>
+    </nav>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Progress</span>
+    <h1>Your game, at a glance</h1>
+    <p class="lede">Your rank, your streak, where you're leaking chips, and which spots you've mastered.</p>
+  </div>
+  <section id="p-rank" aria-label="Rank"></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-streak"><h2 id="h-streak">Day streak</h2><div id="p-streak"></div></section>
+    <section class="pcard" aria-labelledby="h-leaks"><h2 id="h-leaks">Your leaks</h2><p class="hint">The spots where you miss the most. Drill one and watch it climb.</p><div id="p-leaks"></div></section>
+  </div>
+  <section class="pcard" aria-labelledby="h-mastery"><h2 id="h-mastery">Spot mastery</h2><div id="p-mastery"></div></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-card"><h2 id="h-card">Your card</h2><p class="hint">A snapshot of your game to post wherever your poker friends are.</p>
+      <canvas id="card-canvas" class="sharecard" width="1200" height="630" role="img" aria-label="Your Preflop IQ card"></canvas>
+      <div class="rowbtns"><button class="btn" id="card-download" type="button">Download image</button><button class="btn ghostbtn" id="card-share" type="button" hidden>Share</button></div>
+    </section>
+    <section class="pcard" aria-labelledby="h-themes"><h2 id="h-themes">Table themes</h2><p class="hint">Unlock new felts as you climb.</p><div id="p-themes"></div>
+      <h2 class="mt">Trophy case</h2><p id="p-trophy"></p><a class="btn ghostbtn" href="/achievements/">See all achievements</a></section>
+  </div>
+</div>
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/daily/">Daily</a> <a href="/progress/">Progress</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/about/">About</a> <a href="/leaderboard/">Leaderboard</a> <a href="/how-it-works/">How it works</a> <a href="/achievements/">Achievements</a></nav>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
+<script src="/engine.js"></script>
+<script src="/achievements.js"></script>
+<script src="/player.js"></script>
+<script src="/fx.js"></script>
+<script src="/progress.js"></script>
+</body>
+</html>

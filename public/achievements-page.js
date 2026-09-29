@@ -13,7 +13,7 @@
       <div class="achstat"><b>${m.earned}<small>/${m.total}</small></b><span>Earned</span></div>
       <div class="achstat"><b>${m.chips.toLocaleString()}</b><span>Chips in your stack</span></div>
       <div class="achmeter" role="img" aria-label="${m.chips} of ${m.maxChips} chips"><i style="width:${(m.chips/m.maxChips*100).toFixed(1)}%"></i></div>
-      <div class="chiplegend">${Object.entries(ACH.CHIPS).map(([k,c])=>`<span><i class="chip chip-${k}" aria-hidden="true"></i>${c.label.replace(' chip','')} ${c.value}</span>`).join('')}</div>`;
+      <div class="chiplegend">${Object.entries(ACH.CHIPS).map(([k,c])=>`<span><i class="pchip pchip-${k}" aria-hidden="true"></i>${c.label.replace(' chip','')} ${c.value}</span>`).join('')}</div>`;
     const groups=[...new Set(ACH.LIST.map(x=>x.group))];
     $('ach-list').innerHTML=groups.map(g=>{
       const items=ACH.LIST.filter(x=>x.group===g);
@@ -23,7 +23,7 @@
           const got=a.u[x.id],secret=x.hidden&&!got,p=ACH.progress(stats,x.id);
           const bar=!got&&p?`<div class="achbar" aria-label="${p.cur} of ${p.goal}"><i style="width:${(p.cur/p.goal*100).toFixed(1)}%"></i></div><span class="achprog">${p.cur.toLocaleString()} / ${p.goal.toLocaleString()}</span>`:'';
           return `<li class="ach${got?' got':''}${secret?' secret':''}" id="${x.id}">
-            <span class="chip chip-${secret?'none':x.chip}${got?'':' dim'}" aria-hidden="true"></span>
+            <span class="pchip pchip-${secret?'none':x.chip}${got?'':' dim'}" aria-hidden="true"></span>
             <div class="achtext">
               <h3>${secret?'Hidden':esc(x.name)}</h3>
               <p>${secret?'Keep playing. This one finds you.':esc(x.desc)}</p>

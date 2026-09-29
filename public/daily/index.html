@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Page Not Found · Preflop IQ</title>
-<meta name="description" content="This page does not exist.">
-<meta property="og:title" content="Page Not Found · Preflop IQ">
-<meta property="og:description" content="This page does not exist.">
+<title>Daily Challenge · Preflop IQ</title>
+<meta name="description" content="Ten tournament preflop hands a day, the same for everyone. Free to play, share your score, and challenge a friend to the same hands.">
+<meta property="og:title" content="Daily Challenge · Preflop IQ">
+<meta property="og:description" content="Ten tournament preflop hands a day, the same for everyone. Free to play, share your score, and challenge a friend to the same hands.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
     <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
     <nav class="sitenav" aria-label="Main">
       <a href="/">Trainer</a>
-      <a href="/daily/">Daily</a>
+      <a href="/daily/" aria-current="page">Daily</a>
       <a href="/progress/">Progress</a>
       <a href="/charts/">Charts</a>
       <a href="/pricing/">Pricing</a>
@@ -32,11 +32,28 @@
 </header>
 <div class="wrap">
   <div class="page-head">
-    <span class="eyebrow">404</span>
-    <h1>That page folded</h1>
-    <p class="lede">There's nothing at this address. Head back to the trainer or pick a page from the top bar.</p>
+    <span class="eyebrow" id="d-eyebrow">Daily challenge</span>
+    <h1 id="d-title">Daily Challenge</h1>
+    <p class="lede" id="d-lede"></p>
   </div>
-  <a class="cta" href="/">Back to the trainer</a>
+  <div class="vsbanner" id="d-vs" hidden></div>
+  <section id="d-intro" hidden></section>
+  <section id="d-play" hidden>
+    <div class="ddots" id="d-dots"></div>
+    <main class="main">
+      <section class="play">
+        <div class="zone"><div class="felt" id="felt"></div></div>
+        <div class="spot">
+          <div class="cards" id="cards"></div>
+          <div style="min-width:0"><div class="spotlabel" id="spotLabel"></div><p class="prompt" id="prompt"></p></div>
+        </div>
+        <div class="actions" id="actions"></div>
+        <div class="nextrow"><button class="btn nextbtn" id="next" hidden>Next hand</button></div>
+      </section>
+      <section class="panel" id="panel" aria-live="polite"></section>
+    </main>
+  </section>
+  <section id="d-result" hidden></section>
 </div>
 <footer class="sitefoot">
   <div class="sitefoot-in">
@@ -47,5 +64,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="/config.js"></script>
 <script src="/auth.js"></script>
+<script src="/engine.js"></script>
+<script src="/achievements.js"></script>
+<script src="/player.js"></script>
+<script src="/fx.js"></script>
+<script src="/table.js"></script>
+<script src="/daily-core.js"></script>
+<script src="/leaderboard.js"></script>
+<script src="/daily.js"></script>
 </body>
 </html>
