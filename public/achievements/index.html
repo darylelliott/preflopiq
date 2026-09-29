@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Account · Preflop IQ</title>
-<meta name="description" content="Sign in to Preflop IQ to sync your progress and manage your Pro plan.">
-<meta property="og:title" content="Account · Preflop IQ">
-<meta property="og:description" content="Sign in to Preflop IQ to sync your progress and manage your Pro plan.">
+<title>Achievements · Preflop IQ</title>
+<meta name="description" content="Your Preflop IQ trophy case: poker-themed achievements for streaks, sharp folds, well-timed shoves and hours at the table.">
+<meta property="og:title" content="Achievements · Preflop IQ">
+<meta property="og:description" content="Your Preflop IQ trophy case: poker-themed achievements for streaks, sharp folds, well-timed shoves and hours at the table.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,11 +26,18 @@
       <a href="/how-it-works/">How it works</a>
       <a href="/about/">About</a>
     </nav>
-    <a class="acctlink" id="acct" href="/account/" aria-current="page" hidden>Sign in</a>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
-<div class="wrap narrow">
-  <section class="acctbox" id="acctbox" aria-live="polite"><p class="hint">Loading your account…</p></section>
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Achievements</span>
+    <h1>Trophy case</h1>
+    <p class="lede">Earned at the trainer, one hand at a time. Each achievement is worth a chip by difficulty, from a white 1 to a black 100.</p>
+  </div>
+  <section class="achsummary" id="ach-summary" aria-label="Your totals"></section>
+  <div id="ach-list"></div>
+  <a class="cta" href="/">Back to the trainer</a>
 </div>
 <footer class="sitefoot">
   <div class="sitefoot-in">
@@ -41,6 +48,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="/config.js"></script>
 <script src="/auth.js"></script>
-<script src="/account.js"></script>
+<script src="/achievements.js"></script>
+<script src="/achievements-page.js"></script>
 </body>
 </html>

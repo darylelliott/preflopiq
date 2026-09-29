@@ -36,7 +36,7 @@ function renderStats(){
   if(typeof renderFreeLeft==='function'&&window.PIQ)renderFreeLeft();
   const acc=stats.total?Math.round(stats.correct/stats.total*100)+'%':'—';
   renderIQ();
-  $('stats').innerHTML=`<div class="stat"><b>${stats.total}</b><span>Hands</span></div><div class="stat"><b>${acc}</b><span>Accuracy</span></div><div class="stat"><b>${stats.streak}</b><span>Streak · best ${stats.best}</span></div>`;
+  $('stats').innerHTML=`<div class="stat"><b>${stats.total}</b><span>Hands</span></div><div class="stat"><b>${acc}</b><span>Accuracy</span></div><div class="stat"><b>${stats.streak}</b><span>Streak · best ${stats.best}</span></div>${window.ACH?(()=>{const m=ACH.summary(stats);return `<a class="stat statlink" href="/achievements/"><b>${m.earned}<small>/${m.total}</small></b><span>Achievements</span></a>`;})():''}`;
   $('prog').innerHTML=SCN.map(s=>{
     const p=stats.per[statKey(s)]||{n:0,c:0};const pc=p.n?Math.round(p.c/p.n*100):null;
     return `<tr><td>${s.name}</td><td class="n">${p.n}</td><td class="n">${p.c}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1"><span class="${pc!==null&&pc<70?'low':''}" style="width:${pc||0}%"></span></div><span class="n" style="font-family:var(--f-mono);min-width:3.5ch;text-align:right">${pc===null?'—':pc+'%'}</span></div></td></tr>`;
@@ -120,10 +120,17 @@ function answer(a){
   stats.hist.push({p:pts,w:cur.s.border.includes(cur.k)&&cur.s.border!==HANDS?1.5:1});
   if(stats.hist.length>100)stats.hist.shift();
   const after=iqScore();lastDelta=before===null?null:after-before;
+  let fresh=[];
+  if(window.ACH){
+    const h=info(cur.k);
+    fresh=ACH.record(stats,{type:cur.s.type,hero:cur.s.hero,push:isPush(),N,D,hand:cur.k,pair:h.pair,suited:h.s,hi:h.hi,lo:h.lo,
+      right,pick:a,ok,border:cur.s.border!==HANDS&&cur.s.border.includes(cur.k),iq:stats.hist.length>=20?after:-1});
+  }
   store.set('pft-stats2',stats);
   if(window.PIQ){PIQ.recordHand();PIQ.saveStats(stats);}
   renderStats();
   renderPanelAfter(cur.s,cur.k,a,right);
+  if(fresh.length)ACH.celebrate(fresh);
   $('next').hidden=false;$('next').focus({preventScroll:true});
 }
 function applyConfig(){buildScenarios();renderSetup();renderStats();deal();}
@@ -137,7 +144,7 @@ $('tough').addEventListener('change',e=>{tough=e.target.checked;store.set('pft-t
 let resetArmed=false;
 $('reset').addEventListener('click',()=>{
   if(!resetArmed){resetArmed=true;$('reset').textContent='Tap again to reset';setTimeout(()=>{resetArmed=false;$('reset').textContent='Reset stats';},3000);return;}
-  stats={total:0,correct:0,streak:0,best:0,per:{},hist:[]};lastDelta=null;store.set('pft-stats2',stats);renderStats();resetArmed=false;$('reset').textContent='Reset stats';
+  stats={total:0,correct:0,streak:0,best:0,per:{},hist:[],a:stats.a};lastDelta=null;store.set('pft-stats2',stats);renderStats();resetArmed=false;$('reset').textContent='Reset stats';
 });
 document.addEventListener('keydown',e=>{
   if(e.metaKey||e.ctrlKey||e.altKey) return;
@@ -194,7 +201,8 @@ if(window.PIQ){
   PIQ.ready.then(()=>{
     // Signed-in users pick up progress saved from their other devices.
     const remote=PIQ.state.profile&&PIQ.state.profile.stats;
-    if(remote&&remote.total>stats.total){stats=remote;if(!Array.isArray(stats.hist))stats.hist=[];store.set('pft-stats2',stats);}
+    if(remote&&remote.total>stats.total){const local=stats;stats=remote;if(!Array.isArray(stats.hist))stats.hist=[];if(window.ACH)ACH.merge(stats,local);store.set('pft-stats2',stats);}
+    else if(remote&&window.ACH){ACH.merge(stats,remote);store.set('pft-stats2',stats);}
     renderStats();renderFreeLeft();
     if(PIQ.locked()&&!answered)showPaywall();
   });

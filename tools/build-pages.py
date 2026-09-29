@@ -1,0 +1,315 @@
+# Builds every HTML page in public/ from one shared template (top bar, footer, scripts).
+# Usage: python3 tools/build-pages.py
+import re, pathlib
+here = pathlib.Path(__file__).resolve().parent
+root = here.parent / 'public'
+NAV = [('/', 'Trainer'), ('/charts/', 'Charts'), ('/pricing/', 'Pricing'), ('/how-it-works/', 'How it works'), ('/about/', 'About')]
+SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'
+
+def page(path, title, desc, body, scripts=()):
+    cur = ' aria-current="page"'
+    nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == path else '', t) for h, t in NAV)
+    fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in NAV + [('/achievements/', 'Achievements')])
+    js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', *scripts])
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{desc}">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
+    <nav class="sitenav" aria-label="Main">
+{nav}
+    </nav>
+    <a class="acctlink" id="acct" href="/account/"{' aria-current="page"' if path == '/account/' else ''} hidden>Sign in</a>
+  </div>
+</header>
+{body.strip()}
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <nav aria-label="Footer">{fnav}</nav>
+  </div>
+</footer>
+{js}</body>
+</html>
+'''
+
+# ---------- trainer (home) ----------
+tb = (here / 'pages' / 'trainer-body.html').read_text()
+tb = tb.replace('<h1>Preflop IQ</h1>', '<h1>Trainer</h1>')
+tb = re.sub(r'<p class="foot">.*?</p>',
+  '<p class="foot">10bb and 15bb ranges are solved Nash equilibria; 25bb and deeper are modeled. <a href="/how-it-works/#ranges">How the ranges are built</a>.</p>', tb, flags=re.S)
+(root / 'index.html').write_text(page('/', 'Preflop IQ · Tournament Preflop Trainer',
+  'Drill tournament preflop ranges for 2-9 players and 10-100bb stacks. Nash-solved push/fold ranges, an explanation after every hand, and a Preflop IQ score.',
+  tb, ['/engine.js', '/achievements.js', '/trainer.js']))
+
+# ---------- charts ----------
+charts_body = '''
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Range charts</span>
+    <h1>Every spot, every hand</h1>
+    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free; Pro unlocks the rest.</p>
+  </div>
+  <div class="setup">
+    <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
+    <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+  </div>
+  <div class="spotpick" id="spots"></div>
+  <main class="chartmain">
+    <section class="chartcard" id="chartcard" aria-labelledby="chart-title">
+      <div class="chartlock" id="chartlock" hidden></div>
+      <div class="blk"><h3 id="chart-title"></h3></div>
+      <div class="gridwrap"><div class="bigrid" id="grid" role="group" aria-label="Range chart"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+    <section class="panel" id="detail" aria-live="polite"></section>
+  </main>
+</div>'''
+(root / 'charts' ).mkdir(exist_ok=True)
+(root / 'charts' / 'index.html').write_text(page('/charts/', 'Range Charts · Preflop IQ',
+  'Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.',
+  charts_body, ['/engine.js', '/charts.js']))
+
+# ---------- how it works ----------
+how = '''
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">How it works</span>
+    <h1>What you're drilling, and where the answers come from</h1>
+    <p class="lede">Preflop IQ tests one decision at a time: the first action you make before the flop in a tournament. Here's the game it models, how every chart is built, and how your score is calculated.</p>
+  </div>
+  <nav class="toc" aria-label="On this page">
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#glossary">Glossary</a>
+  </nav>
+  <article class="prose">
+    <h2 id="format">The format</h2>
+    <p>Every spot is a tournament hand with a <b>1bb big-blind ante</b>, the structure most live and online tournaments now use. The big blind pays the ante for the whole table, so there are 2.5bb in the pot before anyone acts.</p>
+    <ul>
+      <li><b>Table size:</b> 2 to 9 players. Position names follow the usual convention, so a 6-handed table runs UTG, HJ, CO, BTN, SB, BB.</li>
+      <li><b>Stack depth:</b> 100, 60, 40, 25, 15 or 10 big blinds, with everyone at the table equally deep.</li>
+      <li><b>Chip EV:</b> the ranges maximize chips won. They don't account for payout pressure (ICM), so near the bubble or at a final table the right play is often tighter than these charts.</li>
+    </ul>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Stack</th><th>Open size</th><th>Small blind open</th><th>3-bet size</th></tr></thead>
+      <tbody>
+        <tr><td>60&ndash;100bb</td><td>2.2bb</td><td>3bb</td><td>~3.2&times; in position, ~4.4&times; out of position</td></tr>
+        <tr><td>40bb</td><td>2.1bb</td><td>2.8bb</td><td>~3.2&times; / ~4.4&times;</td></tr>
+        <tr><td>25bb</td><td>2bb (min-raise)</td><td>2.5bb</td><td>All-in</td></tr>
+        <tr><td>10&ndash;15bb</td><td colspan="3">Shove or fold. Every open is all-in, and players behind can only call or fold.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Heads-up, the button posts the small blind and opens to 2.5bb at deep stacks.</p>
+
+    <h2 id="spots">The spots</h2>
+    <p>You're quizzed on two kinds of decision:</p>
+    <ul>
+      <li><b>Opening:</b> everyone folds to you. You raise or fold (shove or fold at 15bb and below). Every seat from the first to act through the small blind is covered.</li>
+      <li><b>Facing a raise:</b> someone has opened and you decide to fold, call or 3-bet. The spots are the big blind against the first seat, the cutoff against the first seat, the button against the cutoff, and both blinds against a button open. Spots are dropped automatically when the table is too short to have them.</li>
+    </ul>
+
+    <h2 id="ranges">How ranges are built</h2>
+    <p>Each chart is labeled on screen as either a <b>Nash solution</b> or <b>modeled</b>, because they're made in two different ways.</p>
+    <h3>10bb and 15bb: solved</h3>
+    <p>At these depths the only options are shove, call or fold, which is small enough to solve exactly. The solve works in two stages:</p>
+    <ol>
+      <li><b>An equity table.</b> Every one of the 14,365 matchups between the 169 starting hands was simulated over 20,000 random boards, accounting for card removal. Known results check out to within about half a percent: AA against KK comes out at 82.3%, against a true value of 81.9%.</li>
+      <li><b>A Nash equilibrium.</b> A solver plays every seat against every other seat, repeatedly finding the best response and averaging it in, until nobody can gain by shoving or calling differently. It includes the big blind paying the ante out of its own stack.</li>
+    </ol>
+    <p>One simplification: the solve assumes at most one player calls a shove, so it ignores three-way all-ins. Commercial tools model those, but they rarely change a range. About 3% of hands end up mixing between actions; the trainer assigns each hand whichever action it takes most often.</p>
+    <h3>25bb and deeper: modeled</h3>
+    <p>With raises, 3-bets and play after the flop in the picture, a true solve needs a full preflop solver running for hours. Instead, these charts rank all 169 hands by all-in equity, give extra weight to suited, connected and paired hands as stacks get deeper (they win bigger pots when they hit), and take the top slice of that ranking at typical tournament frequencies for each seat. The shapes are close to published solver charts, but borderline hands can differ.</p>
+    <div class="callout">If a modeled chart disagrees with a solver you trust on a borderline hand, trust the solver. The solved 10bb and 15bb charts are exact within the assumptions above.</div>
+
+    <h2 id="score">Your Preflop IQ</h2>
+    <p>Your score reflects your last 100 decisions, so it tracks how you're playing now rather than how you played last month.</p>
+    <ul>
+      <li><b>Borderline hands count 1.5&times;.</b> These are hands next to the edge of a range, where most real mistakes happen.</li>
+      <li><b>Partial credit:</b> calling when the chart says 3-bet, or 3-betting when it says call, earns 40%. Folding a hand you should play, or playing one you should fold, earns nothing.</li>
+      <li><b>Scale:</b> weighted accuracy maps onto 25&ndash;145. 50% accuracy is 85, 75% is 115, 90% is 133, and a perfect run is 145.</li>
+      <li>The score is marked provisional until you've played 20 hands.</li>
+    </ul>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Tier</th><th>Preflop IQ</th></tr></thead>
+      <tbody><tr><td>Solver-brained</td><td>135+</td></tr><tr><td>Shark</td><td>120&ndash;134</td></tr><tr><td>Regular</td><td>105&ndash;119</td></tr><tr><td>Recreational</td><td>90&ndash;104</td></tr><tr><td>Fish</td><td>under 90</td></tr></tbody>
+    </table></div>
+
+    <h2 id="using">Using the trainer</h2>
+    <ul>
+      <li><b>Pick your game</b> with the Players and Stack controls. Each combination has its own charts and its own accuracy table.</li>
+      <li><b>Focus your practice</b> with <i>Opening</i> or <i>Facing a raise</i>, and turn on <i>Borderline hands only</i> to skip the obvious folds.</li>
+      <li><b>Keyboard:</b> <code>F</code> fold, <code>C</code> call, <code>R</code> raise or 3-bet, <code>Space</code> next hand.</li>
+      <li><b>Study first</b> on the <a href="/charts/">Charts</a> page, which shows every spot's full range and explains any hand you tap.</li>
+      <li>Progress is saved in your browser. With an account, it's also saved to your account and follows you to other devices.</li>
+      <li><b>Achievements</b> unlock as you play, from your first hand to a 25-hand streak. Each is worth a casino chip by difficulty, from a white 1 to a black 100. See your <a href="/achievements/">trophy case</a>.</li>
+      <li>The first 25 hands are free. After that, <a href="/pricing/">Pro</a> keeps the trainer going.</li>
+    </ul>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="gloss">
+      <dt>bb</dt><dd>Big blinds. Stacks and bet sizes are measured in big blinds so the charts work at any blind level.</dd>
+      <dt>UTG</dt><dd>Under the gun: first to act before the flop. UTG+1 and UTG+2 act next at full tables.</dd>
+      <dt>LJ, HJ</dt><dd>Lojack and hijack, the middle seats. The hijack is two seats right of the button.</dd>
+      <dt>CO</dt><dd>Cutoff, the seat right of the button.</dd>
+      <dt>BTN</dt><dd>The button (dealer). Acts last on every street after the flop, which is why it can play the most hands.</dd>
+      <dt>SB, BB</dt><dd>Small blind and big blind. They post forced bets and act last before the flop but first after it.</dd>
+      <dt>BB ante</dt><dd>An ante paid entirely by the big blind on behalf of the table, here 1bb.</dd>
+      <dt>Open</dt><dd>The first raise into an unraised pot.</dd>
+      <dt>3-bet</dt><dd>A re-raise over an open.</dd>
+      <dt>Shove</dt><dd>Going all-in.</dd>
+      <dt>Squeeze</dt><dd>A 3-bet after someone has opened and someone else has called.</dd>
+      <dt>Suited / offsuit</dt><dd>Two cards of the same suit (AKs) or different suits (AKo).</dd>
+      <dt>Combos</dt><dd>The card combinations a hand represents: 6 for a pair, 4 for a suited hand, 12 for an offsuit hand. Range percentages are counted in combos out of 1,326.</dd>
+      <dt>Blocker</dt><dd>A card in your hand that makes certain opponent hands less likely. Holding an ace, for example, leaves 3 combos of AA instead of 6, and 12 of AK instead of 16.</dd>
+      <dt>Chip EV</dt><dd>Measuring decisions only by chips won or lost, ignoring tournament payouts.</dd>
+      <dt>ICM</dt><dd>Independent Chip Model: a way of converting chips into prize money. Under ICM, survival matters more, so ranges tighten.</dd>
+      <dt>Nash equilibrium</dt><dd>A set of strategies where no player can do better by changing theirs alone.</dd>
+    </dl>
+    <a class="cta" href="/">Start training</a>
+  </article>
+</div>'''
+(root / 'how-it-works').mkdir(exist_ok=True)
+(root / 'how-it-works' / 'index.html').write_text(page('/how-it-works/', 'How It Works · Preflop IQ',
+  'How Preflop IQ builds its tournament preflop ranges, from Nash-solved push/fold charts to modeled deep-stack ranges, and how your Preflop IQ score is calculated.', how))
+
+# ---------- about ----------
+about = '''
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">About</span>
+    <h1>Know your preflop ranges cold, and know why</h1>
+    <p class="lede">Preflop IQ is a free trainer for tournament players. It drills the first decision of every hand until the right play is automatic.</p>
+  </div>
+  <article class="prose">
+    <h2>Why preflop</h2>
+    <p>Every hand starts preflop, and every later decision is built on that one. Open too wide from early position, or defend too little from the big blind, and you pay for it hundreds of times a tournament. It's also the part of the game you can get close to perfect with practice.</p>
+    <p>Most players learn preflop by staring at a chart. That's slow, it doesn't tell you whether you've actually memorized it, and it doesn't explain why a hand is in or out, so the chart falls apart the moment the table size or stack depth changes.</p>
+
+    <h2>What makes it different</h2>
+    <ul>
+      <li><b>Every answer comes with the reasoning.</b> You see why the hand plays or folds, where the range cuts off for that kind of hand, and the full chart for the spot.</li>
+      <li><b>It fits the game you're actually in.</b> Any table from heads-up to 9-handed, and any stack from 100bb down to a 10bb shove.</li>
+      <li><b>It's upfront about its sources.</b> Short-stack charts are solved exactly; deeper charts are modeled, and every chart says which. The <a href="/how-it-works/#ranges">How it works</a> page explains both methods in detail.</li>
+      <li><b>It drills where you make mistakes.</b> Hands near the edge of a range come up more often and count more toward your score.</li>
+    </ul>
+
+    <h2>Free and Pro</h2>
+    <p>Everyone gets 25 hands in the trainer and every 8-handed 100bb chart for free, no sign-up needed. Pro unlocks unlimited hands and every table size and stack depth. See <a href="/pricing/">Pricing</a>.</p>
+
+    <h2>Limits</h2>
+    <p>Preflop IQ covers first-in opens and your first response to a raise. It doesn't cover 4-bets, limped pots or multiway spots yet, and its charts use chip EV, so it doesn't adjust for payout pressure near the money or at a final table.</p>
+
+    <h2 id="privacy">Privacy</h2>
+    <p>There are no ads or tracking scripts. You can play your free hands without an account, and then your stats stay in your browser.</p>
+    <p>If you create an account, we store your email address, your stats and your plan status so your progress follows you between devices. Accounts are run on <a href="https://supabase.com">Supabase</a>. Payments are handled by <a href="https://stripe.com">Stripe</a>; your card details go to Stripe and never touch our servers. Fonts load from Google Fonts, which means Google receives a standard request for the font files.</p>
+
+    <a class="cta" href="/">Start training</a>
+  </article>
+</div>'''
+(root / 'about').mkdir(exist_ok=True)
+(root / 'about' / 'index.html').write_text(page('/about/', 'About · Preflop IQ',
+  'Preflop IQ is a free tournament preflop trainer: drill opens, 3-bets and shoves for any table size and stack depth, with the reasoning behind every answer.', about))
+
+# ---------- 404 ----------
+nf = '''
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">404</span>
+    <h1>That page folded</h1>
+    <p class="lede">There's nothing at this address. Head back to the trainer or pick a page from the top bar.</p>
+  </div>
+  <a class="cta" href="/">Back to the trainer</a>
+</div>'''
+(root / '404.html').write_text(page('', 'Page Not Found · Preflop IQ', 'This page does not exist.', nf))
+
+# ---------- pricing ----------
+pricing = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Pricing</span>
+    <h1>Start free. Go Pro when it clicks.</h1>
+    <p class="lede">Try 25 hands with no sign-up. Pro unlocks the whole trainer and every chart.</p>
+  </div>
+  <div class="tiers">
+    <section class="tier">
+      <h2>Free</h2>
+      <p class="tier-price">$0</p>
+      <ul>
+        <li>25 trainer hands, no account needed</li>
+        <li>Every 8-handed 100bb range chart</li>
+        <li>Full explanations and your Preflop IQ score</li>
+      </ul>
+      <a class="btn ghostbtn" href="/">Start training</a>
+    </section>
+    <section class="tier pro">
+      <h2>Pro</h2>
+      <div class="plans">
+        <button class="plan" id="p-annual" data-plan="annual"><span class="plan-name">Annual</span><span class="plan-price">$59<small>/year</small></span><span class="plan-note">About $4.92 a month · save 38%</span></button>
+        <button class="plan" id="p-monthly" data-plan="monthly"><span class="plan-name">Monthly</span><span class="plan-price">$7.99<small>/month</small></span><span class="plan-note">Cancel anytime</span></button>
+      </div>
+      <p class="pw-error" id="p-error" role="alert" hidden></p>
+      <ul>
+        <li>Unlimited trainer hands</li>
+        <li>Every table size from heads-up to 9-handed</li>
+        <li>Every stack depth from 100bb to 10bb, including solved push/fold ranges</li>
+        <li>All range charts, with the reasoning for every hand</li>
+        <li>Progress synced to your account across devices</li>
+      </ul>
+    </section>
+  </div>
+  <article class="prose">
+    <h2>Questions</h2>
+    <h3>How do I cancel?</h3>
+    <p>From your <a href="/account/">account page</a>, choose <b>Manage billing</b>. You keep Pro until the end of the period you've paid for.</p>
+    <h3>Who handles payment?</h3>
+    <p>Stripe. Your card details go straight to Stripe and never reach Preflop IQ.</p>
+    <h3>Can I switch between monthly and annual?</h3>
+    <p>Yes, from <b>Manage billing</b> on your account page.</p>
+  </article>
+</div>"""
+(root / 'pricing').mkdir(exist_ok=True)
+(root / 'pricing' / 'index.html').write_text(page('/pricing/', 'Pricing · Preflop IQ',
+  'Preflop IQ is free for 25 hands. Pro unlocks unlimited hands and every table size and stack depth for $7.99 a month or $59 a year.',
+  pricing, ['/pricing.js']))
+
+# ---------- account ----------
+account = """
+<div class="wrap narrow">
+  <section class="acctbox" id="acctbox" aria-live="polite"><p class="hint">Loading your account…</p></section>
+</div>"""
+(root / 'account').mkdir(exist_ok=True)
+(root / 'account' / 'index.html').write_text(page('/account/', 'Account · Preflop IQ',
+  'Sign in to Preflop IQ to sync your progress and manage your Pro plan.', account, ['/account.js']))
+
+# ---------- achievements ----------
+ach = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Achievements</span>
+    <h1>Trophy case</h1>
+    <p class="lede">Earned at the trainer, one hand at a time. Each achievement is worth a chip by difficulty, from a white 1 to a black 100.</p>
+  </div>
+  <section class="achsummary" id="ach-summary" aria-label="Your totals"></section>
+  <div id="ach-list"></div>
+  <a class="cta" href="/">Back to the trainer</a>
+</div>"""
+(root / 'achievements').mkdir(exist_ok=True)
+(root / 'achievements' / 'index.html').write_text(page('/achievements/', 'Achievements · Preflop IQ',
+  'Your Preflop IQ trophy case: poker-themed achievements for streaks, sharp folds, well-timed shoves and hours at the table.',
+  ach, ['/achievements.js', '/achievements-page.js']))
+print('ok')
