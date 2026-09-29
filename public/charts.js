@@ -40,7 +40,7 @@ function renderSpots(){
     return `<div class="spotgroup"><span class="seglbl">${label}${list[0].pro?' <span class="protag">Pro</span>':''}</span>${list.map(s=>`<button class="chip" data-spot="${s.id}" aria-pressed="${s.id===spotId}">${s.name}</button>`).join('')}</div>`;
   };
   $('spots').innerHTML=group('rfi',isPush()?'Shoving':'Opening')+group('vs',isPush()?'Facing a shove':'Facing a raise')
-    +group('v3','Facing a 3-bet')+group('sq','Squeezes')+group('lp','Blind vs blind limp');
+    +group('iso','Facing limpers')+group('v3','Facing a 3-bet')+group('sq','Squeezes')+group('lp','Blind vs blind limp');
 }
 function current(){return SCN.find(s=>s.id===spotId)||SCN[0];}
 function renderChart(){

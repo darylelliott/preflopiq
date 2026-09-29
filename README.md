@@ -59,7 +59,7 @@ The script also builds the range library (about 590 pages) from `node tools/rang
 - **Ranks:** seven rungs by hands played and best Preflop IQ; never drop.
 - **Mastery and leaks:** bronze/silver/gold per spot; the leak finder links to `/?drill=N-D-spotId`, which drills one spot. `/?fmt=N-D` opens a format.
 - **Shot clock:** optional 7 seconds per decision; timing out folds.
-- **Pro spots:** 3-bet pots at 25bb+ (facing a 3-bet, squeezes, blind-vs-blind limps) are built in `buildProSpots()` in `engine.js` and marked `pro`. The daily challenge and the range library skip them, so neither changes. "All spots" mixes them in a quarter of the time; the "3-bet pots" chip drills them alone.
+- **Pro spots:** 3-bet and limped pots at 25bb+ (facing a 3-bet, squeezes, facing one or two limpers, blind-vs-blind limps) are built in `buildProSpots()` in `engine.js` and marked `pro`. The daily challenge and the range library skip them, so neither changes. "All spots" mixes them in a quarter of the time; the "3-bet pots" chip drills them alone.
 - **Bubble and final table:** at 10/15bb with 3+ players, `STAGE` (`cev`, `bub`, `ft`) switches the push/fold ranges to ICM solutions from `pro-data.js`. Stats keys carry the stage: `8-10ft-rfi-UTG`.
 - **Mistake costs:** `evLoss()` in `engine.js` returns what a wrong answer cost in bb: exact for push/fold and all-in 3-bet calls (from `pro-data.js`), estimated elsewhere. Stats keep `ev` (totals), `lh` (last 100 costs), `per[key].l` (per spot) and `miss` (last 200 mistakes). `/?review=1` drills uncleared misses.
 - **Clubs** (`/clubs/`): a player creates a club and shares its invite link (`/clubs/?join=CODE`). Members see a club-only board for each daily challenge. Up to 10 clubs per player, 200 members per club.

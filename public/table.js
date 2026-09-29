@@ -8,6 +8,7 @@ const TBL=(function(){
     if(s.type==='vs'){st[s.opener]='open';bet[s.opener]=isPush()?'All-in':s.open;}
     else if(s.type==='v3'){names.forEach(p=>{if(p!==s.hero)st[p]='folded';});st[s.opener]='open';bet[s.hero]=s.open;bet[s.opener]=allin(s.threeTo);}
     else if(s.type==='sq'){st[s.opener]='open';st[s.caller]='called';bet[s.opener]=s.open;bet[s.caller]=s.open;}
+    else if(s.type==='iso'){s.limpers.forEach(p=>{st[p]='called';bet[p]=1;});}
     else if(s.type==='lp'){names.forEach(p=>{if(p!=='BB'&&p!==s.opener)st[p]='folded';});st[s.opener]='called';bet[s.opener]=1;}
     return {st,bet};
   }
@@ -43,6 +44,7 @@ const TBL=(function(){
     if(s.type==='rfi') return `Folds to you on the <b>${s.hero}</b>. ${you}`;
     if(s.type==='v3') return `You open to ${s.open}bb from the <b>${s.hero}</b> and the <b>${s.opener}</b> ${s.threeTo>=D?`moves all-in for ${D}bb`:`3-bets to ${s.threeTo}bb`}. It's back to you. ${you}`;
     if(s.type==='sq') return `The <b>${s.opener}</b> opens to ${s.open}bb and the <b>${s.caller}</b> calls${gap(s.caller,s.hero)?'. Folds to you':''} on the <b>${s.hero}</b>. ${you}`;
+    if(s.type==='iso'){const L=s.limpers.map(p=>`<b>${p}</b>`);return `The ${L.join(' and the ')} limp${L.length>1?'':'s'}${gap(s.limpers[s.limpers.length-1],s.hero)?', and it folds to you':''}. You\u2019re on the <b>${s.hero}</b>. ${you}`;}
     if(s.type==='lp') return N===2?`The <b>BTN</b> completes to 1bb. You're in the <b>BB</b>. ${you}`:`Folds to the <b>SB</b>, who limps. You're in the <b>BB</b>. ${you}`;
     return `The <b>${s.opener}</b> ${isPush()?`shoves ${D}bb`:`opens to ${s.open}bb`}${gap(s.opener,s.hero)?', folds to you':''} on the <b>${s.hero}</b>. ${you}`;
   }

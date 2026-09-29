@@ -90,12 +90,13 @@ const PL=(function(){
   function parseKey(key){const m=key.match(/^(\d+)-(\d+)(bub|ft)?-(.+)$/);if(!m)return null;return {n:+m[1],d:+m[2],st:m[3]||'cev',id:m[4]};}
   // Position names can contain a dash (UTG+1 is stored as-is), so split on the known shapes.
   function spotName(id,d){
-    const push=d<=15,m=id.match(/^(rfi|vs|v3|sq|lp)-(.+)$/);if(!m)return id;
+    const push=d<=15,m=id.match(/^(rfi|vs|v3|sq|lp|iso)-(.+)$/);if(!m)return id;
     const pos=m[2].match(/(UTG\+\d|UTG|LJ|HJ|CO|BTN|SB|BB)/g)||[];
     if(m[1]==='rfi')return `${pos[0]} ${push?'shove':'open'}`;
     if(m[1]==='v3')return `${pos[0]} vs ${pos[1]} 3-bet`;
     if(m[1]==='sq')return `${pos[0]} vs ${pos[1]} open + ${pos[2]} call`;
     if(m[1]==='lp')return `${pos[0]} vs ${pos[1]} limp`;
+    if(m[1]==='iso')return `${pos[0]} vs ${pos.slice(1).join(' + ')} limp${pos.length>2?'s':''}`;
     return `${pos[0]} vs ${pos[1]} ${push?'shove':'open'}`;
   }
   const STG={bub:'Bubble',ft:'Final table'};

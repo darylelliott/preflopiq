@@ -207,6 +207,27 @@ function buildProSpots(){
       odds:Math.round(call/(pot+call)*100),opPct,clPct:Math.round(pctX(vc.sets.call)),threeTo:to,
       labels:{fold:'Fold',call:'Call','3bet':to===D?'Squeeze all-in':'Squeeze'},sets:{'3bet':three,call:callSet}});
   });
+  // Facing limpers: one or two players limp in front of you. Limping ranges are capped (players
+  // raise their best hands), so iso-raises are value-heavy and position matters a lot.
+  const iso=[],first=names[0],second=names[1];
+  if(N===3)iso.push([['BTN'],'SB'],[['BTN'],'BB']);
+  if(N>=4)['CO','BTN','SB','BB'].forEach(h=>{if(h!==first&&names.indexOf(h)>0)iso.push([[first],h]);});
+  if(N>=6)iso.push([[first,second],'BTN'],[[first,second],'BB']);
+  iso.forEach(([L,hero])=>{
+    const n=L.length,oop=hero==='SB'||hero==='BB',extra=n-1;
+    const raiseTo=(D>=40?(oop?5:4):(oop?4:3.5))+extra;
+    const pot=+(2.5+n).toFixed(1),call=+(1-posted(hero)).toFixed(1);
+    const rp=(hero==='BB'?{100:14,60:13,40:12,25:11}:hero==='SB'?{100:13,60:12,40:11,25:10}:{100:16,60:15,40:14,25:13})[D]*(n>1?0.75:1);
+    const raise=topRange(rp,'value');
+    let limp=new Set();
+    if(hero!=='BB'){
+      const lp=(hero==='SB'?{100:25,60:22,40:18,25:14}:{100:12,60:10,40:7,25:4})[D]+(n>1?3:0);
+      limp=topRange(lp,w,raise);
+    }
+    add({id:`iso-${hero}-${L.join('-')}`,type:'iso',hero,opener:L[0],limpers:L,name:`${hero} vs ${L.join(' + ')} limp${n>1?'s':''}`,
+      pot,call,raiseTo,dflt:hero==='BB'?'check':'fold',
+      labels:{raise:'Iso-raise',limp:hero==='SB'?'Complete':'Overlimp',fold:'Fold',check:'Check'},sets:{raise,limp}});
+  });
   // Blind versus blind: the small blind (the button heads-up) limps and the big blind can check or raise.
   const lp=N===2?'BTN':'SB',ls=rfi(lp);
   if(ls&&ls.sets.limp&&ls.sets.limp.size){
@@ -218,6 +239,7 @@ function buildProSpots(){
 function actionOf(s,k){
   if(s.type==='rfi') return s.sets.raise.has(k)?'raise':s.sets.limp&&s.sets.limp.has(k)?'limp':'fold';
   if(s.type==='lp') return s.sets.raise.has(k)?'raise':'check';
+  if(s.type==='iso') return s.sets.raise.has(k)?'raise':s.sets.limp.has(k)?'limp':s.dflt;
   if(s.type==='v3') return s.sets['4bet'].has(k)?'4bet':s.sets.call.has(k)?'call':'fold';
   if(s.sets['3bet'].has(k)) return '3bet';
   if(s.sets.call.has(k)) return 'call';
@@ -231,6 +253,8 @@ function actionsFor(s){
     return [{a:'fold',label:'Fold',key:'F'},{a:'limp',label:sbSeat?'Complete to 1bb':'Limp 1bb',key:'C'},{a:'raise',label:`Raise to ${s.size}bb`,key:'R'}];
   }
   if(s.type==='lp') return [{a:'check',label:'Check',key:'C'},{a:'raise',label:`Raise to ${s.raiseTo}bb`,key:'R'}];
+  if(s.type==='iso') return s.hero==='BB'?[{a:'check',label:'Check',key:'C'},{a:'raise',label:`Raise to ${s.raiseTo}bb`,key:'R'}]
+    :[{a:'fold',label:'Fold',key:'F'},{a:'limp',label:s.hero==='SB'?'Complete to 1bb':'Limp 1bb',key:'C'},{a:'raise',label:`Raise to ${s.raiseTo}bb`,key:'R'}];
   const out=[{a:'fold',label:'Fold',key:'F'},{a:'call',label:`Call ${s.call}bb`,key:'C'}];
   if(s.type==='v3'){if(s.fourTo)out.push({a:'4bet',label:s.fourTo===D?`4-Bet all-in ${D}bb`:`4-Bet to ${s.fourTo}bb`,key:'R'});return out;}
   if(s.type==='sq') out.push({a:'3bet',label:s.threeTo===D?`Squeeze all-in ${D}bb`:`Squeeze to ${s.threeTo}bb`,key:'R'});
@@ -239,7 +263,7 @@ function actionsFor(s){
 }
 // The actions a spot's chart uses, in display order, and their colors.
 function spotActs(s){
-  const order={rfi:['raise','limp','fold'],lp:['raise','check'],v3:['4bet','call','fold']}[s.type]||['3bet','call','fold'];
+  const order=s.type==='iso'?(s.hero==='BB'?['raise','check']:['raise','limp','fold']):{rfi:['raise','limp','fold'],lp:['raise','check'],v3:['4bet','call','fold']}[s.type]||['3bet','call','fold'];
   return order.filter(a=>a==='fold'||a==='check'||HANDS.some(k=>actionOf(s,k)===a));
 }
 // 'check' maps to 'chk' so it can't collide with the .check checkbox-label style.
@@ -266,8 +290,8 @@ function evLoss(s,k,pick){
   const sc=x=>EQ[x],me=sc(k),pool=s.range?[...s.range]:HANDS;let gap=Infinity;
   pool.forEach(x=>{if(actionOf(s,x)===pick)gap=Math.min(gap,Math.abs(sc(x)-me));});
   if(!isFinite(gap)){pool.forEach(x=>{if(actionOf(s,x)!==right)gap=Math.min(gap,Math.abs(sc(x)-me));});gap=(isFinite(gap)?gap:0)+3;}
-  const stake=s.type==='rfi'?2.5+openSize(s.hero):s.type==='lp'?s.pot+s.raiseTo-1:s.pot+s.call;
-  const risk=({raise:openSize(s.hero),limp:1,call:s.call,'3bet':s.threeTo,'4bet':s.fourTo||D}[pick]||0)-(s.type==='v3'?s.open:posted(s.hero));
+  const stake=s.type==='rfi'?2.5+openSize(s.hero):s.type==='lp'||s.type==='iso'?s.pot+s.raiseTo-1:s.pot+s.call;
+  const risk=({raise:s.raiseTo||openSize(s.hero),limp:1,call:s.call,'3bet':s.threeTo,'4bet':s.fourTo||D}[pick]||0)-(s.type==='v3'?s.open:posted(s.hero));
   let bb=2*stake*gap/100;
   if(right==='fold')bb=Math.min(bb,Math.max(0.3,risk*0.6));
   else if(pick!=='fold')bb*=0.35;
@@ -316,7 +340,7 @@ function catLine(s,h){
   let name,members;
   if(h.pair){name='Pocket pairs';members=[...Array(13).keys()].map(i=>({i,k:hk(i,i)}));}
   else{name=`${h.s?'Suited':'Offsuit'} ${PLUR[R[h.hi]]} (${R[h.hi]}x${h.s?'s':'o'})`;members=[...Array(h.hi).keys()].map(i=>({i,k:hk(h.hi,i,h.s)}));}
-  const dflt=s.type==='lp'?'check':'fold',order=spotActs(s).filter(a=>a!==dflt);
+  const dflt=s.dflt||(s.type==='lp'?'check':'fold'),order=spotActs(s).filter(a=>a!==dflt);
   const parts=[];
   order.forEach(a=>{
     const idx=members.filter(m=>actionOf(s,m.k)===a).map(m=>m.i);
@@ -344,6 +368,10 @@ function proContext(s){
     return `You opened to ${s.open}bb from the ${s.hero} (about ${s.myPct}% of hands) and the ${s.opener} 3-bet to ${s.threeTo}bb with about ${s.opPct}% of hands. ${pos} Most opening ranges fold a little over half their hands here: 4-bet the hands that are well ahead of a 3-betting range, call with hands that play well${s.kind==='ip'?' in position':''}, and fold the rest. ${s.fourTo===D?`At ${D}bb a 4-bet commits your stack, so it's a shove.`:'At this depth a 4-bet can still be a raise, which leaves room for a few bluffs with an ace blocker.'} ${DEPTH_NOTE[D]}`;
   }
   if(s.type==='sq') return `The ${s.opener} opened to ${s.open}bb (about ${s.opPct}% of hands) and the ${s.caller} called with a capped range, one that would usually have 3-bet its best hands. ${s.threeTo===D?`At ${D}bb a squeeze is an all-in.`:`A squeeze goes bigger than a normal 3-bet, to ${s.threeTo}bb, because two players can call.`} ${s.kind==='bb'?`You close the action, so calling costs just ${s.call}bb into a ${s.pot}bb pot and you can overcall wide.`:s.kind==='sb'?'From the small blind you will be out of position against two players with the big blind still to act, so overcalling is rare: squeeze or fold.':'You will have position after the flop, but the blinds can still squeeze behind you, so overcall only hands that play well multiway.'} ${DEPTH_NOTE[D]}`;
+  if(s.type==='iso'){
+    const L=s.limpers,two=L.length>1,ip=!['SB','BB'].includes(s.hero);
+    return `${two?`The ${L[0]} and the ${L[1]} limped`:`The ${L[0]} limped`}, so the pot is ${s.pot}bb. Limpers usually raise their best hands, so a limping range is wide but rarely strong. ${s.hero==='BB'?`You can check and see a free flop, or raise to ${s.raiseTo}bb with hands that are ahead of ${two?'two limping ranges':'a limping range'}; you'll be out of position, so raise for value, not to bluff.`:`You can iso-raise to ${s.raiseTo}bb to play ${two?'the pot':'heads-up'} with the initiative${ip?' and position':''}, ${s.hero==='SB'?'complete for half a big blind':'limp behind for 1bb'} with hands that play well multiway, or fold.`}${two?' Every extra limper makes the pot more attractive for speculative hands and makes iso-raising a little tighter, because more players can call.':''} ${DEPTH_NOTE[D]}`;
+  }
   if(s.type==='lp') return `The ${s.opener} ${N===2?'completed':'limped'} with a middling range: it raises its best hands, so the limp rarely holds a premium. You can check and see a free flop, or raise to ${s.raiseTo}bb and take the initiative${N===2?' out of position':' with position after the flop'}. Raise hands that are ahead of a limping range and play well in a bigger pot. Check the rest: a free flop costs nothing. ${DEPTH_NOTE[D]}`;
   return '';
 }
@@ -384,6 +412,12 @@ function proReason(s,a,h){
     if(a==='3bet') return D>=60&&h.s&&h.hi===12&&h.lo<=3&&s.threeTo<D?'Squeeze as a bluff. The ace blocks the strongest hands, the caller is capped, and the hand has nut-flush outs when called.':`Squeeze for value. This hand is ahead of the opener's range and far ahead of the caller's capped range, and there is extra dead money in the pot.`;
     if(a==='call') return s.kind==='bb'?'Call. You close the action with a great price, and this hand plays well in a multiway pot.':'Overcall. This hand plays well multiway, but it is not strong enough to squeeze.';
     return s.kind==='bb'?'Fold. Even at a good price this hand does too poorly out of position in a multiway pot.':'Fold. Two players have shown interest, and this hand is not strong enough to squeeze or to play multiway.';
+  }
+  if(s.type==='iso'){
+    if(a==='raise') return `Iso-raise. This hand is ahead of ${s.limpers.length>1?'the limpers\u2019 ranges':'the limper\u2019s range'}, which rarely hold a premium, and raising lets you take the pot down now or play it with the initiative${['SB','BB'].includes(s.hero)?'':' and position'}.`;
+    if(a==='limp') return s.hero==='SB'?'Complete. For half a big blind more, this hand is worth a multiway flop: it makes straights, flushes or sets that win big pots, but it is not strong enough to raise out of position.':'Overlimp. At this price, with money already in the pot, this hand plays well multiway, but it is not strong enough to iso-raise.';
+    if(a==='check') return 'Check. The flop is free, and this hand is not far enough ahead of a limping range to build a pot out of position.';
+    return 'Fold. This hand is too weak to iso-raise and not playable enough to limp behind, especially with players still to act who can raise.';
   }
   if(s.type==='lp'){
     if(a==='raise') return 'Raise. The limper rarely has a premium hand, so this hand is ahead of their range and wants a bigger pot.';
