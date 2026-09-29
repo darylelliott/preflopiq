@@ -751,3 +751,20 @@ body>.wrap{width:100%}
 .admtable td{vertical-align:top}
 .admtable small{color:var(--muted)}
 .admplan{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+
+/* ---------- signed-in account dashboard ---------- */
+#acctdash{display:flex;flex-direction:column;gap:16px;padding-top:24px;padding-bottom:32px}
+.accthead{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.accthead h1{margin:2px 0}
+.accthead .hint{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
+.acctstats .rtile{text-decoration:none;color:inherit}
+.acctstats .rtile:hover{border-color:var(--gold)}
+.acctstats .rtile>b small{font-size:.9rem;color:var(--muted)}
+.acctgrid .pcard h2{font-size:1.3rem}
+.planstatus.flat{border-top:0;padding-top:0}
+.pcard .planstatus{border-top:0;padding-top:0}
+details.danger{border-top:1px solid var(--line);padding-top:10px}
+details.danger summary{cursor:pointer;color:var(--bad);font-weight:600}
+details.danger p{margin:8px 0}
+.dangerbtn{background:var(--bad)!important;color:#fff!important}
+.acctstats .rtile>b{font-size:1.55rem;overflow-wrap:anywhere}

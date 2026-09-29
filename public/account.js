@@ -24,7 +24,9 @@ function render(){
     box.innerHTML=`<h2>Accounts are coming soon</h2><p>Everything on Preflop IQ is free while accounts are being set up. Your progress is saved in this browser.</p><a class="cta" href="/">Start training</a>`;
     return;
   }
+  showDash(false);
   if(!st.loaded){box.innerHTML='<p class="hint">Loading your account…</p>';return;}
+  if(st.loadError){box.innerHTML=`<h2>We couldn’t load your account</h2><p class="notice err">${esc(st.loadError)}</p><p>Check your connection and try again. If it keeps happening, close other Preflop IQ tabs and reload.</p><button class="btn" id="b-retry" type="button">Try again</button><button class="linkbtn" id="b-signout" type="button">Sign out</button>`;return;}
 
   if(st.recovery&&st.user){
     box.innerHTML=`<h2>Choose a new password</h2>${noticeHTML()}
@@ -38,21 +40,22 @@ function render(){
   if(st.user){
     const sub=st.sub,pro=st.isPro,used=PIQ.handsUsed();
     let plan;
-    if(st.comp&&!(sub&&['active','trialing'].includes(sub.status))){
-      plan=`<div class="planstatus pro"><span class="probadge">Pro</span><p>Complimentary Pro: everything is unlocked, with no billing.</p></div>`;
-    }else if(PIQ.payments&&st.onTrial){
-      const d=PIQ.trialDaysLeft();
-      plan=`<div class="planstatus pro"><span class="probadge">Pro trial</span>
-        <p><b>${d} day${d===1?'':'s'} left</b> of your free Pro trial (it ends ${fmtDate(st.trialEnds)}). Everything is unlocked. Pick a plan any time to keep it.</p>
-        ${plansHTML()}</div>`;
-    }else if(!PIQ.payments&&!pro){
-      plan=`<div class="planstatus"><span class="freebadge">Free</span>
-        <p>Every feature is open while Pro isn’t on sale yet, including 3-bet pots, bubble and final-table ranges, and the full mistake review.</p></div>`;
-    }else if(pro){
+    const paid=!!sub&&['active','trialing'].includes(sub.status);
+    if(paid){
       plan=`<div class="planstatus pro"><span class="probadge">Pro</span>
         <p>${sub.cancel_at_period_end?`Your Pro plan ends on <b>${fmtDate(sub.current_period_end)}</b>. You can renew it any time before then.`:sub.current_period_end?`Renews on <b>${fmtDate(sub.current_period_end)}</b>.`:'Active.'}</p>
         <button class="btn" id="b-portal" type="button">Manage billing</button>
         <p class="hint">Change plan, update your card, download invoices or cancel.</p></div>`;
+    }else if(st.comp){
+      plan=`<div class="planstatus pro"><span class="probadge">Pro</span><p>Complimentary Pro: everything is unlocked, with no billing.</p></div>`;
+    }else if(!PIQ.payments){
+      plan=`<div class="planstatus"><span class="freebadge">Free</span>
+        <p>Every feature is open while Pro isn’t on sale yet, including 3-bet pots, bubble and final-table ranges, and the full mistake review.</p></div>`;
+    }else if(st.onTrial){
+      const d=PIQ.trialDaysLeft();
+      plan=`<div class="planstatus pro"><span class="probadge">Pro trial</span>
+        <p><b>${d} day${d===1?'':'s'} left</b> of your free Pro trial (it ends ${fmtDate(st.trialEnds)}). Everything is unlocked. Pick a plan any time to keep it.</p>
+        ${plansHTML()}</div>`;
     }else{
       const lapsed=sub&&['canceled','past_due','unpaid','incomplete_expired'].includes(sub.status);
       plan=`<div class="planstatus"><span class="freebadge">Free</span>
@@ -63,12 +66,20 @@ function render(){
         ${plansHTML()}</div>`;
     }
     const pr=st.profile||{};
-    box.innerHTML=`<h2>${pr.full_name?`Hi, ${esc(pr.full_name.split(' ')[0])}`:'Your account'}</h2>${noticeHTML()}
-      <dl class="acctinfo"><dt>Email</dt><dd>${esc(st.user.email)}</dd><dt>Hands played</dt><dd>${(pr.stats&&pr.stats.total)||0}</dd></dl>
-      ${plan}
-      ${detailsHTML(pr)}
-      ${emailPrefsHTML()}
-      <button class="linkbtn" id="b-signout" type="button">Sign out</button>`;
+    showDash(true);
+    const first=pr.full_name?esc(pr.full_name.split(' ')[0]):'';
+    const badge=st.comp||pro&&!st.onTrial?'<span class="probadge">Pro</span>':st.onTrial&&PIQ.payments?'<span class="probadge">Pro trial</span>':'<span class="freebadge">Free</span>';
+    $('acctdash').innerHTML=`<div class="accthead"><div><span class="eyebrow">Your account</span><h1>${first?`Hi, ${first}`:'Welcome back'}</h1>
+        <p class="hint">${esc(st.user.email)} ${st.user.created_at?`· member since ${fmtDate(st.user.created_at)}`:''} ${badge}</p></div>
+        <button class="btn ghostbtn" id="b-signout" type="button">Sign out</button></div>
+      ${noticeHTML()}
+      ${gameHTML()}
+      <div class="pgrid acctgrid">
+        <section class="pcard"><h2>Plan</h2>${plan}</section>
+        <section class="pcard">${detailsHTML(pr)}</section>
+        <section class="pcard">${emailPrefsHTML()}</section>
+        <section class="pcard">${securityHTML()}</section>
+      </div>`;
     return;
   }
 
@@ -101,8 +112,39 @@ function render(){
     ${view==='signin'?'<button class="linkbtn" id="b-forgot" type="button">Forgot your password?</button>':''}`;
 }
 
+function showDash(on){$('acctdash').hidden=!on;$('acctwrap').hidden=on;}
+// A summary of the player's game, from the same stats the trainer keeps (synced with the account).
+let gstats=PL.load();
+PL.withRemote(gstats).then(s=>{gstats=s;if(PIQ.state.user)render();}).catch(()=>{});
+function gameHTML(){
+  const s=gstats,iq=PL.iq(s),st=PL.streak(s),r=PL.rank(s),m=ACH.summary(s),lh=s.lh||[];
+  const bb=lh.length?(lh.reduce((a,b)=>a+b,0)/lh.length*100).toFixed(0):'—',miss=(s.miss||[]).filter(x=>!x.c).length;
+  const acc=s.total?Math.round(s.correct/s.total*100)+'%':'—';
+  return `<section class="pcard"><h2>Your game</h2><div class="rsum acctstats">
+    <a class="rtile" href="/"><b>${s.total}</b><span>hands played</span><small>${acc} correct</small></a>
+    <a class="rtile" href="/progress/"><b>${iq===null?'—':iq}</b><span>Preflop IQ</span><small>${iq===null?'play 20 hands':PL.tier(iq)} · best ${s.iqBest||'—'}</small></a>
+    <a class="rtile" href="/progress/"><b>${esc(r.cur.name)}</b><span>rank</span><small>${r.next?`next: ${esc(r.next.name)}`:'top of the ladder'}</small></a>
+    <a class="rtile" href="/progress/"><b>${st.days}</b><span>day streak</span><small>${st.doneToday?'today counts':`${st.today} of ${st.goal} today`}</small></a>
+    <a class="rtile" href="/review/"><b>${bb}</b><span>bb lost / 100</span><small>${miss} mistake${miss===1?'':'s'} to review</small></a>
+    <a class="rtile" href="/achievements/"><b>${m.earned}<small>/${m.total}</small></b><span>achievements</span><small>${m.chips.toLocaleString()} chips</small></a>
+  </div></section>`;
+}
+function securityHTML(){
+  return `<h2>Sign-in and security</h2>
+    <form id="f-pw" class="form">
+      <label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" title="At least 8 characters, with letters and numbers" required>
+      <label for="pw2">Confirm new password</label><input id="pw2" type="password" autocomplete="new-password" minlength="8" required>
+      <button class="btn ghostbtn" type="submit">Change password</button>
+    </form>
+    <button class="linkbtn" id="b-signout-all" type="button">Sign out on every device</button>
+    <details class="danger"><summary>Delete my account</summary>
+      <p>This permanently deletes your account, progress, leaderboard scores and any clubs you started${PIQ.payments?', and cancels any Pro plan':''}. It can’t be undone.</p>
+      <form id="f-delete" class="form"><label for="del-confirm">Type DELETE to confirm</label><input id="del-confirm" autocomplete="off" required pattern="DELETE">
+      <button class="btn dangerbtn" type="submit">Delete my account</button></form>
+    </details>`;
+}
 function detailsHTML(pr){
-  return `<div class="planstatus"><h3>Your details</h3>
+  return `<div><h2>Your details</h2>
     <form id="f-details" class="form">
       <label for="d-name">Name</label><input id="d-name" autocomplete="name" maxlength="60" value="${esc(pr.full_name||'')}">
       <label for="d-dname">Leaderboard name</label><input id="d-dname" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{3,20}" title="3 to 20 letters, numbers, spaces, dots, dashes or underscores" value="${esc(pr.display_name||'')}">
@@ -112,7 +154,7 @@ function detailsHTML(pr){
 }
 function emailPrefsHTML(){
   const p=(PIQ.state.profile&&PIQ.state.profile.email_prefs)||{streak:true,weekly:true};
-  return `<div class="planstatus"><h3>Emails</h3>
+  return `<div class="planstatus flat"><h2>Emails</h2>
     <label class="check" for="e-streak"><input type="checkbox" id="e-streak" data-pref="streak" ${p.streak!==false?'checked':''}> Remind me at 7 p.m. when my day streak is about to end</label>
     <label class="check" for="e-weekly"><input type="checkbox" id="e-weekly" data-pref="weekly" ${p.weekly!==false?'checked':''}> Send a weekly recap on Sunday mornings: hands, Preflop IQ and my biggest leak</label>
     <p class="hint">Times follow your device\u2019s time zone. Every email has a one-click unsubscribe.</p></div>`;
@@ -150,6 +192,19 @@ document.addEventListener('submit',async e=>{
         const {error}=await sb.auth.signInWithPassword({email,password});
         if(error)throw new Error(error.message==='Invalid login credentials'?'That email and password don’t match an account.':error.message);
       }
+    }else if(e.target.id==='f-pw'){
+      if($('pw1').value!==$('pw2').value)throw new Error('The two passwords don’t match.');
+      const {error}=await sb.auth.updateUser({password:$('pw1').value});
+      if(error)throw error;
+      e.target.reset();setNotice('Password changed.');
+    }else if(e.target.id==='f-delete'){
+      if($('del-confirm').value!=='DELETE')throw new Error('Type DELETE to confirm.');
+      const {data:s0}=await sb.auth.getSession();
+      const res=await fetch('/api/account',{method:'DELETE',headers:{authorization:`Bearer ${s0.session?.access_token||''}`}});
+      const out=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(out.error||'Could not delete your account.');
+      try{localStorage.removeItem('pft-stats2');}catch(x){}
+      await PIQ.signOut();view='signin';setNotice('Your account has been deleted.');
     }else if(e.target.id==='f-details'){
       const dn=$('d-dname').value.trim();
       await PIQ.updateProfile({full_name:$('d-name').value.trim()||null,display_name:dn||null,plays:$('d-plays').value||null});
@@ -169,11 +224,13 @@ document.addEventListener('submit',async e=>{
 });
 
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('button');if(!t||!$('acctbox').contains(t))return;
+  const t=e.target.closest('button');if(!t||!($('acctbox').contains(t)||$('acctdash').contains(t)))return;
   if(t.id==='t-signin'||t.id==='t-signup'){view=t.id.slice(2);notice=null;render();}
   else if(t.id==='b-forgot'){view='forgot';notice=null;render();}
   else if(t.id==='b-back'){view='signin';notice=null;render();}
   else if(t.id==='b-signout'){await PIQ.signOut();notice=null;view='signin';render();}
+  else if(t.id==='b-signout-all'){await PIQ.client.auth.signOut({scope:'global'});await PIQ.signOut();notice=null;view='signin';setNotice('Signed out on every device.');}
+  else if(t.id==='b-retry'){await PIQ.refresh();render();}
   else if(t.id==='b-portal'){t.disabled=true;try{await PIQ.portal();}catch(x){setNotice(x.message,'err');}}
   else if(t.dataset.plan){t.disabled=true;try{await PIQ.checkout(t.dataset.plan);}catch(x){t.disabled=false;setNotice(x.message,'err');}}
 });

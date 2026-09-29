@@ -21,13 +21,17 @@
     return n;
   }
 
-  async function loadAccount(session){
+  // A query that never answers must not leave the page on "Loading" forever.
+  const withTimeout=(p,ms=10000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out talking to the account server.')),ms))]);
+  async function loadAccount(session){try{await withTimeout(loadAccountInner(session));}catch(e){console.error('Account load failed',e);state.loadError=e.message;}finally{state.loaded=true;}}
+  async function loadAccountInner(session){state.loadError=null;
     state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;state.onTrial=false;state.comp=false;state.trialEnds=null;
     if(state.user){
       const [p,s]=await Promise.all([
         sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone,full_name,plays,trial_ends,comp').eq('id',state.user.id).maybeSingle(),
         sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
       ]);
+      if(p.error)throw new Error('Could not load your profile: '+p.error.message);
       state.profile=p.data||{hands_played:0,stats:null};
       state.sub=s.data||null;
       // Reminder emails go out in the player's own evening, so keep their time zone current.
@@ -51,13 +55,15 @@
 
   const ready=(async()=>{
     if(!configured) return state;
-    const {data}=await sb.auth.getSession();
+    const {data}=await withTimeout(sb.auth.getSession());
     await loadAccount(data.session);
-    sb.auth.onAuthStateChange(async(event,session)=>{
+    // Supabase holds its auth lock while this callback runs, so never await a Supabase call in
+    // it (that deadlocks every tab on the site). Do the work on the next tick instead.
+    sb.auth.onAuthStateChange((event,session)=>{
       if(event==='PASSWORD_RECOVERY'){state.recovery=true;}
       if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED','PASSWORD_RECOVERY'].includes(event)&&(session?.user?.id||null)!==(state.user?.id||null)){
-        await loadAccount(session);emit();
-      }else if(event==='PASSWORD_RECOVERY'){emit();}
+        setTimeout(()=>{loadAccount(session).then(emit,e=>{console.error(e);state.loaded=true;emit();});},0);
+      }else if(event==='PASSWORD_RECOVERY'){setTimeout(emit,0);}
       else if(session){state.session=session;}
     });
     return state;

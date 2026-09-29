@@ -32,9 +32,10 @@
     <a class="acctlink" id="acct" href="/account/" aria-current="page" hidden>Sign in</a>
   </div>
 </header>
-<div class="wrap narrow">
+<div class="wrap narrow" id="acctwrap">
   <section class="acctbox" id="acctbox" aria-live="polite"><p class="hint">Loading your account…</p></section>
 </div>
+<div class="wrap" id="acctdash" hidden aria-live="polite"></div>
 <footer class="sitefoot">
   <div class="sitefoot-in">
     <span class="footbrand"><span class="suits" aria-hidden="true"><i>&#9824;</i><i class="red">&#9829;</i><i class="red">&#9830;</i><i>&#9827;</i></span>Preflop IQ · Tournament preflop training, one hand at a time.</span>
@@ -44,6 +45,10 @@
 <script src="/vendor/supabase-2.117.2.js"></script>
 <script src="/config.js"></script>
 <script src="/auth.js"></script>
+<script src="/engine.js"></script>
+<script src="/achievements.js"></script>
+<script src="/player.js"></script>
+<script src="/fx.js"></script>
 <script src="/account.js"></script>
 </body>
 </html>

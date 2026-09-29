@@ -345,12 +345,13 @@ pricing = """
 
 # ---------- account ----------
 account = """
-<div class="wrap narrow">
+<div class="wrap narrow" id="acctwrap">
   <section class="acctbox" id="acctbox" aria-live="polite"><p class="hint">Loading your account…</p></section>
-</div>"""
+</div>
+<div class="wrap" id="acctdash" hidden aria-live="polite"></div>"""
 (root / 'account').mkdir(exist_ok=True)
 (root / 'account' / 'index.html').write_text(page('/account/', 'Account · Preflop IQ',
-  'Sign in to Preflop IQ to sync your progress and manage your Pro plan.', account, ['/account.js']))
+  'Sign in to Preflop IQ to sync your progress and manage your Pro plan.', account, PLAYER + ['/account.js']))
 
 # ---------- achievements ----------
 ach = """
