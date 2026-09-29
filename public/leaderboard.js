@@ -49,5 +49,5 @@ const LB=(function(){
     }catch(x){el.querySelector('#lb-body').innerHTML=`<p class="hint">${esc(x.message)}</p>`;}
   }
   if(on())PIQ.ready.then(flush).catch(()=>{});
-  return {submit,render,flush};
+  return {submit,render,flush,saveName};
 })();

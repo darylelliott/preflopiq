@@ -4,7 +4,7 @@ import re, pathlib
 here = pathlib.Path(__file__).resolve().parent
 root = here.parent / 'public'
 SITE = 'https://preflopiq.pages.dev'   # change to the custom domain once it's live
-NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/ranges/', 'Ranges'), ('/pricing/', 'Pricing'), ('/about/', 'About')]
+NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/ranges/', 'Ranges'), ('/clubs/', 'Clubs'), ('/pricing/', 'Pricing'), ('/about/', 'About')]
 SITEMAP = []
 FOOTNAV = NAV + [('/charts/', 'Chart explorer'), ('/leaderboard/', 'Leaderboard'), ('/how-it-works/', 'How it works'), ('/achievements/', 'Achievements')]
 PLAYER = ['/engine.js', '/achievements.js', '/player.js', '/fx.js']
@@ -412,6 +412,20 @@ lb = """
 (root / 'leaderboard').mkdir(exist_ok=True)
 (root / 'leaderboard' / 'index.html').write_text(page('/leaderboard/', 'Leaderboard · Preflop IQ',
   'Daily and weekly leaderboards for the Preflop IQ daily challenge.', lb, PLAYER + ['/daily-core.js', '/leaderboard.js', '/leaderboard-page.js']))
+
+# ---------- clubs ----------
+clubs = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Clubs</span>
+    <h1>Bring your game night</h1>
+    <p class="lede">Start a private club for your home game or study group. Everyone plays the same daily challenge, and your club gets its own board for the day and the week.</p>
+  </div>
+  <div id="clubsbox"><p class="hint">Loading…</p></div>
+</div>"""
+(root / 'clubs').mkdir(exist_ok=True)
+(root / 'clubs' / 'index.html').write_text(page('/clubs/', 'Clubs · Preflop IQ',
+  'Private Preflop IQ clubs for home games and study groups: a shared daily challenge and your own leaderboard.', clubs, PLAYER + ['/daily-core.js', '/leaderboard.js', '/clubs.js']))
 
 # =====================================================================
 # Range chart library: /ranges/, /ranges/<format>/, /ranges/<format>/<spot>/

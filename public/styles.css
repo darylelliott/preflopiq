@@ -680,3 +680,11 @@ body>.wrap{width:100%}
 @media (max-width:520px){.spotlist a{flex-direction:column;gap:2px}.spotlist a span{text-align:left}}
 .tag.limp{background:var(--call);color:var(--call-ink)}
 .sitefoot-in{color:rgba(244,236,220,.82)}
+/* ---------- clubs ---------- */
+#clubsbox{display:flex;flex-direction:column;gap:16px}
+#clublist{display:flex;flex-direction:column;gap:16px}
+.clubhead{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.invite{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.invite>span:first-child{font-family:var(--f-display);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:.8rem;color:var(--muted)}
+.invite code{font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);padding:5px 9px;border-radius:7px;overflow-wrap:anywhere;min-width:0}
+.pcard .form .rowbtns input{flex:1;min-width:160px}

@@ -86,6 +86,7 @@ async function afterSignIn(){
     try{await PIQ.checkout(next.slice(9));}catch(e){setNotice(e.message,'err');}
   }else if(next==='trainer'){location.href='/';}
   else if(next==='daily'){location.href='/daily/';}
+  else if(next==='clubs'){location.href='/clubs/';}
 }
 
 document.addEventListener('submit',async e=>{

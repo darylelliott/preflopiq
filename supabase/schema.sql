@@ -79,3 +79,23 @@ create table if not exists public.daily_scores (
 create index if not exists daily_scores_day on public.daily_scores (day, score desc, created_at);
 alter table public.daily_scores enable row level security;
 revoke all on public.daily_scores from anon, authenticated;
+
+-- ---------- Clubs (home games, study groups) ----------
+-- Safe to run again. All access goes through /api/clubs, which uses the service role.
+create table if not exists public.clubs (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(name) between 3 and 40),
+  invite_code text not null unique,
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.club_members (
+  club_id uuid not null references public.clubs (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  joined_at timestamptz not null default now(),
+  primary key (club_id, user_id)
+);
+create index if not exists club_members_user on public.club_members (user_id);
+alter table public.clubs enable row level security;
+alter table public.club_members enable row level security;
+revoke all on public.clubs, public.club_members from anon, authenticated;
