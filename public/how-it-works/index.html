@@ -22,9 +22,11 @@
     <nav class="sitenav" aria-label="Main">
       <a href="/">Trainer</a>
       <a href="/charts/">Charts</a>
+      <a href="/pricing/">Pricing</a>
       <a href="/how-it-works/" aria-current="page">How it works</a>
       <a href="/about/">About</a>
     </nav>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
 <div class="wrap">
@@ -94,7 +96,8 @@
       <li><b>Focus your practice</b> with <i>Opening</i> or <i>Facing a raise</i>, and turn on <i>Borderline hands only</i> to skip the obvious folds.</li>
       <li><b>Keyboard:</b> <code>F</code> fold, <code>C</code> call, <code>R</code> raise or 3-bet, <code>Space</code> next hand.</li>
       <li><b>Study first</b> on the <a href="/charts/">Charts</a> page, which shows every spot's full range and explains any hand you tap.</li>
-      <li>Progress is saved in your browser. Clearing this site's data, or switching browsers or devices, starts you fresh.</li>
+      <li>Progress is saved in your browser. With an account, it's also saved to your account and follows you to other devices.</li>
+      <li>The first 25 hands are free. After that, <a href="/pricing/">Pro</a> keeps the trainer going.</li>
     </ul>
 
     <h2 id="glossary">Glossary</h2>
@@ -123,8 +126,11 @@
 <footer class="sitefoot">
   <div class="sitefoot-in">
     <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
-    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
 </body>
 </html>

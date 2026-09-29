@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Pricing · Preflop IQ</title>
+<meta name="description" content="Preflop IQ is free for 25 hands. Pro unlocks unlimited hands and every table size and stack depth for $7.99 a month or $59 a year.">
+<meta property="og:title" content="Pricing · Preflop IQ">
+<meta property="og:description" content="Preflop IQ is free for 25 hands. Pro unlocks unlimited hands and every table size and stack depth for $7.99 a month or $59 a year.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
+    <nav class="sitenav" aria-label="Main">
+      <a href="/">Trainer</a>
+      <a href="/charts/">Charts</a>
+      <a href="/pricing/" aria-current="page">Pricing</a>
+      <a href="/how-it-works/">How it works</a>
+      <a href="/about/">About</a>
+    </nav>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Pricing</span>
+    <h1>Start free. Go Pro when it clicks.</h1>
+    <p class="lede">Try 25 hands with no sign-up. Pro unlocks the whole trainer and every chart.</p>
+  </div>
+  <div class="tiers">
+    <section class="tier">
+      <h2>Free</h2>
+      <p class="tier-price">$0</p>
+      <ul>
+        <li>25 trainer hands, no account needed</li>
+        <li>Every 8-handed 100bb range chart</li>
+        <li>Full explanations and your Preflop IQ score</li>
+      </ul>
+      <a class="btn ghostbtn" href="/">Start training</a>
+    </section>
+    <section class="tier pro">
+      <h2>Pro</h2>
+      <div class="plans">
+        <button class="plan" id="p-annual" data-plan="annual"><span class="plan-name">Annual</span><span class="plan-price">$59<small>/year</small></span><span class="plan-note">About $4.92 a month · save 38%</span></button>
+        <button class="plan" id="p-monthly" data-plan="monthly"><span class="plan-name">Monthly</span><span class="plan-price">$7.99<small>/month</small></span><span class="plan-note">Cancel anytime</span></button>
+      </div>
+      <p class="pw-error" id="p-error" role="alert" hidden></p>
+      <ul>
+        <li>Unlimited trainer hands</li>
+        <li>Every table size from heads-up to 9-handed</li>
+        <li>Every stack depth from 100bb to 10bb, including solved push/fold ranges</li>
+        <li>All range charts, with the reasoning for every hand</li>
+        <li>Progress synced to your account across devices</li>
+      </ul>
+    </section>
+  </div>
+  <article class="prose">
+    <h2>Questions</h2>
+    <h3>How do I cancel?</h3>
+    <p>From your <a href="/account/">account page</a>, choose <b>Manage billing</b>. You keep Pro until the end of the period you've paid for.</p>
+    <h3>Who handles payment?</h3>
+    <p>Stripe. Your card details go straight to Stripe and never reach Preflop IQ.</p>
+    <h3>Can I switch between monthly and annual?</h3>
+    <p>Yes, from <b>Manage billing</b> on your account page.</p>
+  </article>
+</div>
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
+<script src="/pricing.js"></script>
+</body>
+</html>

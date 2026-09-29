@@ -22,16 +22,18 @@
     <nav class="sitenav" aria-label="Main">
       <a href="/">Trainer</a>
       <a href="/charts/" aria-current="page">Charts</a>
+      <a href="/pricing/">Pricing</a>
       <a href="/how-it-works/">How it works</a>
       <a href="/about/">About</a>
     </nav>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
 <div class="wrap">
   <div class="page-head">
     <span class="eyebrow">Range charts</span>
     <h1>Every spot, every hand</h1>
-    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why.</p>
+    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free; Pro unlocks the rest.</p>
   </div>
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
@@ -39,7 +41,8 @@
   </div>
   <div class="spotpick" id="spots"></div>
   <main class="chartmain">
-    <section class="chartcard" aria-labelledby="chart-title">
+    <section class="chartcard" id="chartcard" aria-labelledby="chart-title">
+      <div class="chartlock" id="chartlock" hidden></div>
       <div class="blk"><h3 id="chart-title"></h3></div>
       <div class="gridwrap"><div class="bigrid" id="grid" role="group" aria-label="Range chart"></div></div>
       <div class="legend" id="legend"></div>
@@ -50,9 +53,12 @@
 <footer class="sitefoot">
   <div class="sitefoot-in">
     <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
-    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
 <script src="/engine.js"></script>
 <script src="/charts.js"></script>
 </body>

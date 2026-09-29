@@ -2,7 +2,9 @@
 
 A tournament preflop range trainer. It deals a hand in a real spot, asks for your action, then explains the right play and shows the full range chart. Supports 2–9 players and 10–100bb stacks with a 1bb big-blind ante, and tracks a rolling Preflop IQ score.
 
-The site is plain static HTML, CSS and JavaScript in `public/`, with no build step and no backend. Only `public/` is deployed; `tools/` and this README stay private in the repo. Progress is saved in the browser's localStorage.
+The site is plain static HTML, CSS and JavaScript in `public/`, with no build step. Accounts run on Supabase, payments on Stripe, and three small Cloudflare Pages Functions in `functions/api/` connect them. Only `public/` and `functions/` are deployed; `tools/`, `supabase/` and these docs stay private in the repo.
+
+**To turn on accounts and Pro, follow [SETUP.md](SETUP.md).** Until then the site is fully free.
 
 ## Site layout
 
@@ -12,7 +14,16 @@ The site is plain static HTML, CSS and JavaScript in `public/`, with no build st
 | `public/charts/` + `charts.js` | Range chart browser |
 | `public/how-it-works/` | Format, range methods, scoring, glossary |
 | `public/about/` | About and privacy |
+| `public/pricing/` + `pricing.js` | Free vs Pro, plan buttons |
+| `public/account/` + `account.js` | Sign in, sign up, password reset, plan and billing |
 | `public/404.html` | Not-found page |
+| `public/auth.js` | Accounts, Pro status, the 25-hand free limit and progress sync (every page) |
+| `public/config.js` | Public Supabase URL and anon key; empty = accounts off |
+| `functions/api/checkout.js` | Starts Stripe Checkout for the signed-in user |
+| `functions/api/portal.js` | Opens the Stripe customer portal |
+| `functions/api/stripe-webhook.js` | Keeps the `subscriptions` table in sync with Stripe |
+| `lib/server.js` | Shared Stripe and Supabase helpers for the functions |
+| `supabase/schema.sql` | Database tables, row-level security and sign-up trigger |
 | `public/engine.js` | Shared hand data, ranges, Nash solutions and explanations |
 | `public/styles.css` | Shared styles, top bar and footer |
 
@@ -21,10 +32,16 @@ The top bar and footer are repeated in each HTML file; edit all of them when add
 ## Deploying (Cloudflare Pages)
 
 1. In Cloudflare, go to **Workers & Pages → Create → Pages → Connect to Git**, and pick this repo.
-2. Build settings: framework preset **None**, build command **empty**, output directory **`public`**.
+2. Build settings: framework preset **None**, build command **empty**, output directory **`public`**, root directory empty (so `functions/` is picked up).
 3. Deploy, then add your custom domain under **Custom domains**.
 
 Every push to `main` redeploys. Other branches get their own preview URL.
+
+## Free limit and Pro
+
+- Anyone gets 25 trainer hands without an account. The count lives in the browser for anonymous players and in `profiles.hands_played` once signed in (hands played before signing in carry over).
+- Pro (`subscriptions.status` of `active` or `trialing`) removes the limit and unlocks every chart. Free users can view 8-handed 100bb charts only.
+- Enforcement is deliberately light: the range data ships to the browser, so a determined user could bypass the limit by editing code. Stripe and Supabase are the source of truth for who has paid.
 
 ## Where the ranges come from
 

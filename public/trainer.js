@@ -33,6 +33,7 @@ function renderSetup(){
   $('cfg').textContent=`· ${N===2?'heads-up':N+'-handed'}, ${D}bb`;
 }
 function renderStats(){
+  if(typeof renderFreeLeft==='function'&&window.PIQ)renderFreeLeft();
   const acc=stats.total?Math.round(stats.correct/stats.total*100)+'%':'—';
   renderIQ();
   $('stats').innerHTML=`<div class="stat"><b>${stats.total}</b><span>Hands</span></div><div class="stat"><b>${acc}</b><span>Accuracy</span></div><div class="stat"><b>${stats.streak}</b><span>Streak · best ${stats.best}</span></div>`;
@@ -88,6 +89,8 @@ function pickScenario(){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function deal(){
+  if(window.PIQ&&PIQ.locked()){showPaywall();return;}
+  hidePaywall();
   let s,k,tries=0;
   do{s=pickScenario();const src=(tough||Math.random()<0.6)?s.border:HANDS;k=src[Math.floor(Math.random()*src.length)];tries++;}while(s.id+k===lastKey&&tries<10);
   lastKey=s.id+k;cur={s,k};answered=false;
@@ -104,6 +107,7 @@ function deal(){
 }
 function answer(a){
   if(answered||!cur) return;
+  if(window.PIQ&&PIQ.locked()){showPaywall();return;}
   const btn=$('act-'+a);if(!btn) return;
   answered=true;
   const right=actionOf(cur.s,cur.k),ok=a===right;
@@ -117,6 +121,7 @@ function answer(a){
   if(stats.hist.length>100)stats.hist.shift();
   const after=iqScore();lastDelta=before===null?null:after-before;
   store.set('pft-stats2',stats);
+  if(window.PIQ){PIQ.recordHand();PIQ.saveStats(stats);}
   renderStats();
   renderPanelAfter(cur.s,cur.k,a,right);
   $('next').hidden=false;$('next').focus({preventScroll:true});
@@ -147,5 +152,52 @@ document.addEventListener('keydown',e=>{
     e.preventDefault();deal();}
 });
 
+/* ---------- free-hand limit and paywall ---------- */
+function renderFreeLeft(){
+  let el=$('freeleft');
+  if(!el){el=document.createElement('a');el.id='freeleft';el.className='freeleft';el.href='/pricing/';$('stats').after(el);}
+  const left=window.PIQ?PIQ.handsLeft():Infinity;
+  el.hidden=!isFinite(left);
+  if(isFinite(left)) el.innerHTML=left>0?`<b>${left}</b> free hand${left===1?'':'s'} left · <span>Go Pro</span>`:'<b>Free hands used</b> · <span>Go Pro</span>';
+}
+function paywallEl(){
+  let el=$('paywall');if(el)return el;
+  el=document.createElement('div');el.id='paywall';el.className='paywall';el.hidden=true;
+  el.innerHTML=`<div class="paywall-card" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <span class="eyebrow">Preflop IQ Pro</span>
+    <h2 id="pw-title">You've played your ${PIQ.FREE_HANDS} free hands</h2>
+    <p>Keep your streak going. Pro gives you unlimited hands at every table size and stack depth, every range chart, and your progress synced across devices.</p>
+    <div class="plans">
+      <button class="plan" id="pw-annual" data-plan="annual"><span class="plan-name">Annual</span><span class="plan-price">$59<small>/year</small></span><span class="plan-note">About $4.92 a month · save 38%</span></button>
+      <button class="plan" id="pw-monthly" data-plan="monthly"><span class="plan-name">Monthly</span><span class="plan-price">$7.99<small>/month</small></span><span class="plan-note">Cancel anytime</span></button>
+    </div>
+    <p class="pw-error" id="pw-error" role="alert" hidden></p>
+    <p class="pw-links"><a href="/account/?next=trainer" id="pw-signin">Already have Pro? Sign in</a> · <a href="/charts/">Browse the free charts</a></p>
+  </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click',async e=>{
+    const b=e.target.closest('.plan');if(!b)return;
+    const err=$('pw-error');err.hidden=true;b.disabled=true;
+    try{await PIQ.checkout(b.dataset.plan);}catch(x){err.textContent=x.message;err.hidden=false;b.disabled=false;}
+  });
+  return el;
+}
+function showPaywall(){
+  const el=paywallEl();
+  $('pw-signin').hidden=!!PIQ.state.user;
+  if(el.hidden){el.hidden=false;$('pw-annual').focus({preventScroll:true});}
+}
+function hidePaywall(){const el=$('paywall');if(el)el.hidden=true;}
+
 renderModes();applyConfig();
+if(window.PIQ){
+  PIQ.ready.then(()=>{
+    // Signed-in users pick up progress saved from their other devices.
+    const remote=PIQ.state.profile&&PIQ.state.profile.stats;
+    if(remote&&remote.total>stats.total){stats=remote;if(!Array.isArray(stats.hist))stats.hist=[];store.set('pft-stats2',stats);}
+    renderStats();renderFreeLeft();
+    if(PIQ.locked()&&!answered)showPaywall();
+  });
+  PIQ.onChange(()=>{renderFreeLeft();if(!PIQ.locked())hidePaywall();else if(!answered)showPaywall();});
+}
 

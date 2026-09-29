@@ -212,3 +212,76 @@ td.n{font-family:var(--f-mono);text-align:right;white-space:nowrap}
 .bigrid button:focus-visible{outline:3px solid var(--ink);position:relative;z-index:2}
 .handhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .handhead h2{font-size:2rem;font-family:var(--f-mono);font-weight:600}
+
+/* ---------- accounts, pricing and paywall ---------- */
+.acctlink{font-family:var(--f-display);font-weight:600;font-size:1rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 14px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.acctlink:hover,.acctlink[aria-current="page"]{border-color:var(--ink)}
+.acctlink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (max-width:560px){.acctlink{margin-left:auto;padding:4px 12px;font-size:.9rem}.brand{order:0}.acctlink{order:1}.sitenav{order:2}}
+.probadge,.freebadge{display:inline-block;font-family:var(--f-display);font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:1px 8px;border-radius:5px}
+.probadge{background:var(--gold);color:var(--gold-ink)}
+.freebadge{background:var(--fold-bg);color:var(--fold-ink)}
+.freeleft{font-size:.85rem;color:var(--muted);text-decoration:none;border:1px dashed var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+.freeleft b{color:var(--ink);font-family:var(--f-mono)}
+.freeleft span{color:var(--raise);font-weight:600}
+.freeleft:hover{border-color:var(--raise)}
+.btn.ghostbtn{background:transparent;color:var(--ink);border-color:var(--line);text-decoration:none;display:inline-block;text-align:center}
+.linkbtn{font:inherit;font-size:.9rem;background:none;border:0;padding:4px 0;color:var(--call);cursor:pointer;text-decoration:underline;align-self:flex-start}
+.linkbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.plan{font:inherit;text-align:left;display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.plan:hover{border-color:var(--raise)}
+.plan:first-child{border-color:var(--raise)}
+.plan:disabled{opacity:.6;cursor:progress}
+.plan:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.plan-name{font-family:var(--f-display);font-weight:700;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.plan-price{font-family:var(--f-display);font-weight:700;font-size:2rem;line-height:1.05}
+.plan-price small{font-size:.9rem;font-weight:500;color:var(--muted);margin-left:2px}
+.plan-note{font-size:.82rem;color:var(--muted)}
+.pw-error{margin:0;color:var(--bad);font-size:.9rem}
+
+.paywall{position:fixed;inset:0;z-index:50;background:rgba(10,14,17,.62);display:flex;align-items:center;justify-content:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.paywall-card{background:var(--surface);color:var(--ink);border-radius:16px;max-width:520px;width:100%;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.paywall-card h2{font-size:1.9rem}
+.paywall-card p{margin:0}
+.pw-links{font-size:.88rem;color:var(--muted)}
+.pw-links a{color:var(--call)}
+
+.chartcard{position:relative}
+.chartcard.locked .bigrid{opacity:.35;pointer-events:none}
+.chartlock{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:16px}
+.lockbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:380px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.lockbox h3{font-size:1.35rem}
+.lockbox p{margin:0}
+
+.tiers{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+@media (max-width:760px){.tiers{grid-template-columns:minmax(0,1fr)}}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.tier.pro{border:2px solid var(--raise)}
+.tier h2{font-size:1.6rem}
+.tier-price{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0}
+.tier ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+
+.wrap.narrow{max-width:560px}
+.acctbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.acctbox h2{font-size:1.7rem}
+.acctbox h3{font-size:1.2rem;margin-top:6px}
+.acctbox p{margin:0}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-family:var(--f-display);font-weight:600;font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px 10px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--raise)}
+.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.form{display:flex;flex-direction:column;gap:8px}
+.form label{font-size:.85rem;font-weight:600}
+.form input{font:inherit;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.form input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.form .btn{margin-top:6px}
+.notice{padding:10px 12px;border-radius:9px;font-size:.92rem}
+.notice.ok{background:var(--surface-2);border-left:4px solid var(--good)}
+.notice.err{background:var(--surface-2);border-left:4px solid var(--bad);color:var(--ink)}
+.acctinfo{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 16px;margin:0}
+.acctinfo dt{color:var(--muted);font-size:.9rem}
+.acctinfo dd{margin:0;overflow-wrap:anywhere}
+.planstatus{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.planstatus .probadge,.planstatus .freebadge{align-self:flex-start}

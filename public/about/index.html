@@ -22,9 +22,11 @@
     <nav class="sitenav" aria-label="Main">
       <a href="/">Trainer</a>
       <a href="/charts/">Charts</a>
+      <a href="/pricing/">Pricing</a>
       <a href="/how-it-works/">How it works</a>
       <a href="/about/" aria-current="page">About</a>
     </nav>
+    <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
 <div class="wrap">
@@ -46,11 +48,15 @@
       <li><b>It drills where you make mistakes.</b> Hands near the edge of a range come up more often and count more toward your score.</li>
     </ul>
 
+    <h2>Free and Pro</h2>
+    <p>Everyone gets 25 hands in the trainer and every 8-handed 100bb chart for free, no sign-up needed. Pro unlocks unlimited hands and every table size and stack depth. See <a href="/pricing/">Pricing</a>.</p>
+
     <h2>Limits</h2>
     <p>Preflop IQ covers first-in opens and your first response to a raise. It doesn't cover 4-bets, limped pots or multiway spots yet, and its charts use chip EV, so it doesn't adjust for payout pressure near the money or at a final table.</p>
 
     <h2 id="privacy">Privacy</h2>
-    <p>There are no accounts, ads or tracking scripts. Your stats and Preflop IQ are stored only in your browser, and never sent anywhere. Clearing this site's data resets them. Fonts are loaded from Google Fonts, which means Google receives a standard request for the font files.</p>
+    <p>There are no ads or tracking scripts. You can play your free hands without an account, and then your stats stay in your browser.</p>
+    <p>If you create an account, we store your email address, your stats and your plan status so your progress follows you between devices. Accounts are run on <a href="https://supabase.com">Supabase</a>. Payments are handled by <a href="https://stripe.com">Stripe</a>; your card details go to Stripe and never touch our servers. Fonts load from Google Fonts, which means Google receives a standard request for the font files.</p>
 
     <a class="cta" href="/">Start training</a>
   </article>
@@ -58,8 +64,11 @@
 <footer class="sitefoot">
   <div class="sitefoot-in">
     <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
-    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/pricing/">Pricing</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
 </body>
 </html>
