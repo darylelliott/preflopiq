@@ -5,7 +5,7 @@
 const fs = require('fs'), path = require('path');
 const { solve } = require('./nash');
 const STACKS = [10, 15];
-const root = path.join(__dirname, '..');
+const root = path.join(__dirname, '..', 'public');
 const matrix = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'matrix.json'), 'utf8'));
 
 const EQA = matrix.EQ.map((row, i) => {
