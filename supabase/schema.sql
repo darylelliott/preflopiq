@@ -149,3 +149,17 @@ alter table public.profiles add column if not exists comp boolean not null defau
 grant usage on schema public to anon, authenticated, service_role;
 grant select on public.profiles, public.subscriptions to authenticated;
 grant all on public.profiles, public.subscriptions, public.daily_scores, public.clubs, public.club_members to service_role;
+
+-- ---------- Hardening ----------
+-- Safe to run again. Signed-out visitors get nothing from these tables, the sign-up function
+-- can only run as a trigger, and what players can write to their own row is kept small.
+revoke all on public.profiles, public.subscriptions from anon;
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+alter table public.profiles drop constraint if exists profile_sizes;
+alter table public.profiles add constraint profile_sizes check (
+  hands_played between 0 and 10000000
+  and (stats is null or pg_column_size(stats) <= 262144)
+  and pg_column_size(email_prefs) <= 256
+  and (timezone is null or char_length(timezone) <= 64)
+  and (email is null or char_length(email) <= 320)
+);

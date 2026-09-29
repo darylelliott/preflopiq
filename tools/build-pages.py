@@ -8,7 +8,8 @@ NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/ra
 SITEMAP = []
 FOOTNAV = NAV + [('/charts/', 'Chart explorer'), ('/leaderboard/', 'Leaderboard'), ('/how-it-works/', 'How it works'), ('/achievements/', 'Achievements')]
 PLAYER = ['/engine.js', '/achievements.js', '/player.js', '/fx.js']
-SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'
+# Self-hosted (copied from the npm package) so the site loads no third-party script.
+SUPABASE_JS = '/vendor/supabase-2.117.2.js'
 
 def page(path, title, desc, body, scripts=(), nav_path=None, private=False):
     if path and not path.endswith('.html') and not private:

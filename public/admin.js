@@ -23,7 +23,7 @@ function render(){
   if(!PIQ.configured){box.innerHTML='<p>Accounts aren’t switched on.</p>';return;}
   if(!PIQ.state.loaded){box.innerHTML='<p class="hint">Loading…</p>';return;}
   if(!PIQ.state.user){box.innerHTML='<p><a href="/account/">Sign in</a> with the owner account to use this page.</p>';return;}
-  if(!data){box.innerHTML=msg?`<p class="notice err">${esc(msg)}</p>`:'<p class="hint">Loading accounts…</p>';return;}
+  if(!data){box.innerHTML=msg?`<p class="notice err">${esc(msg)}</p>${/owner/.test(msg)?`<p>You're signed in as <b>${esc(PIQ.state.user.email)}</b>. To make this the owner account, add this user ID to <code>ADMIN_USER_IDS</code> in Cloudflare (Workers &amp; Pages → preflopiq → Settings → Variables and secrets), then redeploy:</p><p><code>${esc(PIQ.state.user.id)}</code></p>`:''}`:'<p class="hint">Loading accounts…</p>';return;}
   const s=data.stats;
   box.innerHTML=`<div class="rsum">
       <div class="rtile"><b>${s.users}</b><span>accounts</span></div>

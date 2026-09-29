@@ -8,7 +8,7 @@ let focus=store.get('pft-focus',null);   // drill one spot: {n,d,id,st}
 STAGE=store.get('pic-stage','cev');
 const CLOCK_SECONDS=7;
 const statKey=s=>`${fmtKey()}-${s.id}`;
-let cur=null,answered=false,lastKey='',clockTimer=null,tickTimer=null;
+let cur=null,answered=false,lastKey='',clockTimer=null,tickTimer=null,foldTimer=null;
 
 // A leak link (/?drill=8-100-vs-BB-UTG) starts drilling that spot.
 (function(){
@@ -164,9 +164,9 @@ function startClock(){
   };
   clockTimer=requestAnimationFrame(frame);
   tickTimer=setInterval(()=>{if(!answered&&performance.now()-t0>ms-3200)FX.play('tick');},1000);
-  setTimeout(()=>{if(!answered&&cur&&performance.now()-t0>=ms-50)answer('fold',{timeout:true});},ms);
+  foldTimer=setTimeout(()=>{if(PL.settings.clock&&!answered&&cur&&performance.now()-t0>=ms-50)answer('fold',{timeout:true});},ms);
 }
-function stopClock(){cancelAnimationFrame(clockTimer);clearInterval(tickTimer);const b=$('clockbar');if(b){b.hidden=true;b.classList.remove('urgent');}}
+function stopClock(){cancelAnimationFrame(clockTimer);clearInterval(tickTimer);clearTimeout(foldTimer);const b=$('clockbar');if(b){b.hidden=true;b.classList.remove('urgent');}}
 
 function applyConfig(){buildScenarios();renderSetup();renderModes();renderStats();deal();}
 
@@ -178,7 +178,8 @@ $('stack').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
 $('stage').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;STAGE=b.dataset.st;store.set('pic-stage',STAGE);clearFocus(false);applyConfig();});
 document.querySelectorAll('.modes .chip[data-mode]').forEach(c=>c.addEventListener('click',()=>{mode=c.dataset.mode;store.set('pft-mode',mode);clearFocus(false);renderModes();renderStats();deal();}));
 $('tough').addEventListener('change',e=>{tough=e.target.checked;store.set('pft-tough',tough);if(!answered)deal();});
-$('clock').addEventListener('change',e=>{PL.setSetting('clock',e.target.checked);if(!answered)deal();});
+// Turning the shot clock on or off keeps the current hand: it just starts or stops the timer.
+$('clock').addEventListener('change',e=>{PL.setSetting('clock',e.target.checked);if(e.target.checked&&!answered&&cur)startClock();else stopClock();});
 $('sound').addEventListener('click',()=>{PL.setSetting('sound',!PL.settings.sound);renderModes();FX.play('right');});
 $('focusbar').addEventListener('click',e=>{if(e.target.id==='stopdrill'){clearFocus(true);}if(e.target.id==='stopreview'){stopReview();applyConfig();}});
 $('panel').addEventListener('click',e=>{if(e.target.id==='endreview'){stopReview();applyConfig();}});

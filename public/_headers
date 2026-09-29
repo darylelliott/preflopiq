@@ -1,0 +1,21 @@
+# Security headers for every page (Cloudflare Pages reads this file; it isn't served).
+# The site loads scripts only from itself; styles and fonts from Google Fonts; data only
+# from itself and the Supabase project.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://pupddxyrckkyrorkmqld.supabase.co wss://pupddxyrckkyrorkmqld.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/account/*
+  Cache-Control: no-store
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable

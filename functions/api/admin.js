@@ -1,15 +1,16 @@
 // Owner tools: look up accounts and give (or take away) free Pro.
-// Only signed-in accounts whose email is listed in the ADMIN_EMAILS environment variable
-// (comma-separated, in Cloudflare) can use it.
+// Only accounts whose user ID is listed in the ADMIN_USER_IDS environment variable
+// (comma-separated, in Cloudflare) can use it. IDs, not emails: with email confirmation off,
+// anyone could sign up with an unclaimed address, but nobody can choose their user ID.
 //   GET  /api/admin?q=text   ->  { stats, users }   (q matches email, name or leaderboard name; blank = newest 50)
 //   POST /api/admin  { user_id, comp: true|false }  ->  { ok: true }
-import { json, handle, requireEnv, getUser, sb, HttpError } from '../../lib/server.js';
+import { json, handle, requireEnv, getUser, sb, HttpError, readJson } from '../../lib/server.js';
 
 async function requireAdmin(request, env) {
-  requireEnv(env, ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'ADMIN_EMAILS']);
   const user = await getUser(request, env);
-  const admins = env.ADMIN_EMAILS.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  if (!admins.includes((user.email || '').toLowerCase())) throw new HttpError(403, 'This page is for the site owner.');
+  const admins = (env.ADMIN_USER_IDS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  if (!admins.includes(String(user.id).toLowerCase())) throw new HttpError(403, 'This page is for the site owner.');
+  requireEnv(env, ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
   return user;
 }
 // Row count for a REST query, without downloading the rows.
@@ -41,7 +42,7 @@ export const onRequestGet = handle(async ({ request, env }) => {
 
 export const onRequestPost = handle(async ({ request, env }) => {
   await requireAdmin(request, env);
-  const body = await request.json().catch(() => ({}));
+  const body = await readJson(request);
   if (!/^[0-9a-f-]{36}$/i.test(body.user_id || '') || typeof body.comp !== 'boolean') throw new HttpError(400, 'Send a user_id and comp: true or false.');
   const rows = await sb(env, `profiles?id=eq.${body.user_id}`, { method: 'PATCH', body: { comp: body.comp }, prefer: 'return=representation' });
   if (!rows || !rows.length) throw new HttpError(404, 'No account with that id.');

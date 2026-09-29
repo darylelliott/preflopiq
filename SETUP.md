@@ -94,7 +94,7 @@ If Pro doesn't switch on, check **Stripe → Developers → Webhooks → your en
 
 ## Free Pro for chosen accounts (owner page)
 
-`/admin/` (not linked anywhere, not indexed) lists accounts, shows who is on a trial, paying or on free Pro, and has a **Free Pro** checkbox per account. Only signed-in accounts whose email is in the Cloudflare variable `ADMIN_EMAILS` (comma-separated, type Text) can use it. Free Pro never expires and never bills.
+`/admin/` (not linked anywhere, not indexed) lists accounts, shows who is on a trial, paying or on free Pro, and has a **Free Pro** checkbox per account. Only accounts whose **user ID** is in the Cloudflare variable `ADMIN_USER_IDS` (comma-separated, type Text) can use it. It checks IDs rather than emails because, with email confirmation off, anyone could sign up with an address nobody has claimed yet. Find an ID in Supabase → Authentication → Users. Free Pro never expires and never bills.
 
 ## Turning the paywall on
 

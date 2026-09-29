@@ -22,6 +22,7 @@ async function syncSubscription(env, sub, userIdHint) {
 export const onRequestPost = handle(async ({ request, env }) => {
   requireEnv(env, ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
   const payload = await request.text();
+  if (payload.length > 1_000_000) throw new HttpError(413, 'Payload too large.');
   const ok = await verifyStripeSignature(payload, request.headers.get('stripe-signature'), env.STRIPE_WEBHOOK_SECRET);
   if (!ok) throw new HttpError(400, 'Invalid signature');
   const event = JSON.parse(payload);

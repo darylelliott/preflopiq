@@ -2,7 +2,7 @@
 // GET  /api/clubs                        -> { clubs: [{ id, name, invite_code, owner, members }] }
 // GET  /api/clubs?board=<id>&day=DATE    -> { club, day, rows: [{ name, today, week, days, me }] }
 // POST /api/clubs { action: 'create', name } | { action: 'join', code } | { action: 'leave', club }
-import { json, handle, requireEnv, getUser, sb, HttpError } from '../../lib/server.js';
+import { json, handle, requireEnv, getUser, sb, HttpError, readJson } from '../../lib/server.js';
 
 const MAX_CLUBS = 10, MAX_MEMBERS = 200;
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no 0/O or 1/I
@@ -59,7 +59,7 @@ export const onRequestGet = handle(async ({ request, env }) => {
 export const onRequestPost = handle(async ({ request, env }) => {
   requireEnv(env, ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
   const user = await getUser(request, env);
-  const body = await request.json().catch(() => ({}));
+  const body = await readJson(request);
   const current = await myClubs(env, user.id);
 
   if (body.action === 'create') {
