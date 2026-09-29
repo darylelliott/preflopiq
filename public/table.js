@@ -36,7 +36,7 @@ const TBL=(function(){
       : `The <b>${s.opener}</b> ${isPush()?`shoves ${D}bb`:`opens to ${s.open}bb`}${TABLES[N].indexOf(s.hero)-TABLES[N].indexOf(s.opener)>1?', folds to you':''} on the <b>${s.hero}</b>. You hold <span class="hk">${k}</span>.`;
   }
   function actions(s){return actionsFor(s).map(x=>`<button class="act" id="act-${x.a}" data-a="${x.a}">${x.label}<kbd>${x.key}</kbd></button>`).join('');}
-  function keysHint(s){return `Keys: <kbd>F</kbd> fold${s.type==='vs'?' · <kbd>C</kbd> call':''}${s.type==='rfi'||!isPush()?` · <kbd>R</kbd> ${s.type==='vs'?'3-bet':isPush()?'shove':'raise'}`:''} · <kbd>Space</kbd> next hand`;}
+  function keysHint(s){return `Keys: <kbd>F</kbd> fold${s.type==='vs'?' · <kbd>C</kbd> call':isPush()?'':' · <kbd>C</kbd> limp'}${s.type==='rfi'||!isPush()?` · <kbd>R</kbd> ${s.type==='vs'?'3-bet':isPush()?'shove':'raise'}`:''} · <kbd>Space</kbd> next hand`;}
   function before(s){
     return `<div class="blk"><h3>The spot</h3><p>${spotContext(s)}</p></div>
     <p class="hint">Pick an action to see the answer, why it's right, and the full range chart for this spot.</p>
@@ -49,6 +49,7 @@ const TBL=(function(){
       :`<div class="verdict ${ok?'ok':'no'}"><h2>${ok?'Correct':'Not quite'}</h2><span class="answerline">You: <b>${s.labels[pick]}</b> · Chart: <b>${s.labels[right]}</b> with <b>${k}</b></span></div>`;
     return `${head}
     <div class="blk"><h3>The play</h3><p>${reason(s,right,h)}</p></div>
+    ${pick==='limp'&&right!=='limp'?`<div class="blk"><h3>Why not limp</h3><p>${limpNote(s)}</p></div>`:''}
     <div class="blk"><h3>The hand</h3><p>${trait(h)}</p></div>
     <div class="blk"><h3>The spot</h3><p>${spotContext(s)}</p></div>
     <div class="catline">${catLine(s,h)}</div>
@@ -61,7 +62,7 @@ const TBL=(function(){
       if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
       const k=e.key.toLowerCase(),s=hd.spot();if(!s)return;
       if(!hd.isAnswered()){
-        if(k==='f')hd.answer('fold');else if(k==='c')hd.answer('call');
+        if(k==='f')hd.answer('fold');else if(k==='c')hd.answer(s.type==='rfi'?'limp':'call');
         else if(k==='r'||k==='3')hd.answer(s.type==='rfi'?'raise':'3bet');
       }else if(k===' '||k==='enter'||k==='n'){
         if(e.target.tagName==='BUTTON'&&!e.target.classList.contains('nextbtn')&&k!=='n')return;

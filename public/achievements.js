@@ -49,6 +49,7 @@
     // ---- hidden until earned
     {id:'welcome',group:'Hidden',chip:'white',hidden:true,name:'Welcome to Poker',desc:'Get one wrong. Everyone does.',test:c=>!c.ok},
     {id:'late-reg',group:'Hidden',chip:'white',hidden:true,name:'Late Reg',desc:'Play a hand between midnight and 5 a.m.',test:c=>c.hour<5},
+    {id:'limp-along',group:'Hidden',chip:'white',hidden:true,name:'Limp Along',desc:'Open-limp from anywhere but the small blind. We\u2019ve all been there.',test:c=>c.pick==='limp'&&c.hero!=='SB'&&c.N!==2},
     {id:'the-hammer',group:'Hidden',chip:'white',hidden:true,name:'The Hammer',desc:'Fold 7-2 offsuit. It was never going to work out.',test:c=>c.ok&&c.hand==='72o'&&c.right==='fold'}
   ];
   const BY_ID=Object.fromEntries(LIST.map(x=>[x.id,x]));

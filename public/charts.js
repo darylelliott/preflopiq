@@ -38,9 +38,9 @@ function renderChart(){
   $('grid').innerHTML=HANDS.map(k=>{const a=lock?'fold':actionOf(s,k);
     return `<button class="${a==='3bet'?'t3bet':a==='fold'?'':a}" data-k="${k}" aria-pressed="${k===selected}" aria-label="${lock?k:`${k}: ${s.labels[a]}`}"${lock?' tabindex="-1"':''}>${k}</button>`;}).join('');
   $('legend').hidden=lock;
-  const acts=s.type==='rfi'?['raise','fold']:[...(s.sets['3bet'].size?['3bet']:[]),...(s.sets.call.size?['call']:[]),'fold'];
+  const acts=s.type==='rfi'?['raise',...(s.sets.limp&&s.sets.limp.size?['limp']:[]),'fold']:[...(s.sets['3bet'].size?['3bet']:[]),...(s.sets.call.size?['call']:[]),'fold'];
   $('legend').innerHTML=acts.map(a=>{let c=0;HANDS.forEach(x=>{if(actionOf(s,x)===a)c+=combos(x);});
-    const col=a==='fold'?'var(--fold-bg)':a==='call'?'var(--call)':'var(--raise)';
+    const col=a==='fold'?'var(--fold-bg)':a==='call'||a==='limp'?'var(--call)':'var(--raise)';
     return `<span><i style="background:${col}"></i>${s.labels[a]} ${(c/1326*100).toFixed(1)}%</span>`;}).join('');
   renderLock();
   renderDetail();

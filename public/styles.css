@@ -644,3 +644,7 @@ body{background-image:var(--tex-soft)}
 body{min-height:100vh;display:flex;flex-direction:column}
 body>.wrap{width:100%}
 .sitefoot{margin-top:auto}
+
+/* Limp cells share the call color. */
+.cell.limp,.bigrid button.limp{background:var(--call);color:var(--call-ink)}
+.act[data-a="limp"]{background:var(--call);color:var(--call-ink)}

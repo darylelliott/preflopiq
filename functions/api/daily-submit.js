@@ -3,7 +3,7 @@
 import { json, handle, requireEnv, getUser, HttpError } from '../../lib/server.js';
 import { DAILY } from '../../lib/engine.mjs';
 
-const ACTIONS = new Set(['fold', 'call', 'raise', '3bet']);
+const ACTIONS = new Set(['fold', 'call', 'limp', 'raise', '3bet']);
 const dayOffset = n => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
 
 export const onRequestPost = handle(async ({ request, env }) => {
