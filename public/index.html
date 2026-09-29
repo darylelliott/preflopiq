@@ -70,12 +70,14 @@
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
     <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+    <div class="seg" id="stageseg" role="group" aria-labelledby="lbl-stage" hidden><span class="seglbl" id="lbl-stage">Stage</span><div class="segbtns" id="stage"></div></div>
   </div>
 
   <nav class="modes" aria-label="Which spots to drill">
     <button class="chip" data-mode="all" id="m-all">All spots</button>
     <button class="chip" data-mode="rfi" id="m-rfi">Opening</button>
     <button class="chip" data-mode="vs" id="m-vs">Facing a raise</button>
+    <button class="chip" data-mode="pro" id="m-pro">3-bet pots <span class="protag">Pro</span></button>
     <label class="tough" for="tough"><input type="checkbox" id="tough"> Borderline hands only</label>
     <label class="tough" for="clock" title="7 seconds per decision. If time runs out, your hand is folded."><input type="checkbox" id="clock"> Shot clock</label>
     <button class="chip soundbtn" id="sound" type="button" aria-pressed="false">Sound off</button>
@@ -121,6 +123,7 @@
 <script src="/achievements.js"></script>
 <script src="/player.js"></script>
 <script src="/fx.js"></script>
+<script src="/pro-data.js"></script>
 <script src="/table.js"></script>
 <script src="/daily-core.js"></script>
 <script src="/trainer.js"></script>

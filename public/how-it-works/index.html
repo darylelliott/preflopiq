@@ -43,7 +43,7 @@
 </section>
 <div class="wrap">
   <nav class="toc" aria-label="On this page">
-    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
   </nav>
   <article class="prose">
     <h2 id="format">The format</h2>
@@ -51,7 +51,7 @@
     <ul>
       <li><b>Table size:</b> 2 to 9 players. Position names follow the usual convention, so a 6-handed table runs UTG, HJ, CO, BTN, SB, BB.</li>
       <li><b>Stack depth:</b> 100, 60, 40, 25, 15 or 10 big blinds, with everyone at the table equally deep.</li>
-      <li><b>Chip EV:</b> the ranges maximize chips won. They don't account for payout pressure (ICM), so near the bubble or at a final table the right play is often tighter than these charts.</li>
+      <li><b>Stage:</b> by default the ranges maximize chips won (chip EV). At 10bb and 15bb with three or more players, Pro adds <b>Bubble</b> and <b>Final table</b> ranges that account for payout pressure (ICM).</li>
     </ul>
     <div class="tablewrap"><table>
       <thead><tr><th>Stack</th><th>Open size</th><th>Small blind open</th><th>3-bet size</th></tr></thead>
@@ -72,6 +72,13 @@
       <li><b>Facing a raise:</b> someone has opened and you decide to fold, call or 3-bet. The spots are the big blind against the first seat, the cutoff and the small blind; the cutoff against the first seat; the button against the hijack and the cutoff; and both blinds against a cutoff or button open. Spots are dropped automatically when the table is too short to have them.</li>
     </ul>
 
+    <p>Pro adds three kinds of 3-bet pot at 25bb and deeper:</p>
+    <ul>
+      <li><b>Facing a 3-bet:</b> you opened, someone behind re-raised, and you choose to fold, call or 4-bet. You're only dealt hands you would have opened. At 25bb the 3-bet is all-in, so it's call or fold.</li>
+      <li><b>Squeezes:</b> one player opened, another called, and you fold, overcall or squeeze. The spots are the blinds against a cutoff open and button call, and the button and big blind against a first-seat open and cutoff call.</li>
+      <li><b>Blind versus blind limp:</b> the small blind (the button heads-up) limps and the big blind checks or raises.</li>
+    </ul>
+
     <h2 id="ranges">How ranges are built</h2>
     <p>Each chart is labeled on screen as either a <b>Nash solution</b> or <b>modeled</b>, because they're made in two different ways.</p>
     <h3>10bb and 15bb: solved</h3>
@@ -84,6 +91,24 @@
     <h3>25bb and deeper: modeled</h3>
     <p>With raises, 3-bets and play after the flop in the picture, a true solve needs a full preflop solver running for hours. Instead, these charts rank all 169 hands by all-in equity, give extra weight to suited, connected and paired hands as stacks get deeper (they win bigger pots when they hit), and take the top slice of that ranking at typical tournament frequencies for each seat. The shapes are close to published solver charts, but borderline hands can differ.</p>
     <div class="callout">If a modeled chart disagrees with a solver you trust on a borderline hand, trust the solver. The solved 10bb and 15bb charts are exact within the assumptions above.</div>
+    <h3>3-bet pots</h3>
+    <p>Facing a 3-bet, you continue with a little under half of your opening range, more in position and against wide 3-bettors: the strongest hands 4-bet, the most playable call, and the rest fold. At 100bb a suited wheel ace joins the 4-bets as a bluff. The 3-betting ranges are the same ones the facing-a-raise charts use. When the 3-bet is all-in (25bb), there's nothing left to model: the chart calls with every hand whose equity against the 3-bet range, from the full equity table, beats the price.</p>
+    <p>Squeeze ranges are a little tighter than 3-betting ranges for value, because two players can call, but go bigger in size. Overcalls are widest from the big blind, which closes the action at a good price.</p>
+    <h3>Bubble and final table: ICM</h3>
+    <p>Near the money, chips aren't worth the same as prize money: losing your stack can cost your whole payout, while doubling up doesn't double it. The Independent Chip Model (ICM) converts every stack into its share of the remaining prizes, and these ranges are a Nash equilibrium solved on those prize shares instead of chips, with the same solver as the chip-EV charts. Folding is valued by what happens next, since others can still bust each other.</p>
+    <ul>
+      <li><b>Final table:</b> the N players left are paid 25%, 17%, 12.5%, 9.5%, 7.5%, 6%, 5%, 4% and 3.3% of the prize pool, from first down (the top N of those).</li>
+      <li><b>Bubble:</b> the same structure, but the next player out gets nothing.</li>
+      <li>Everyone is equally deep, as in every other chart. With uneven stacks the big stacks can push harder and the short stacks call tighter still.</li>
+    </ul>
+    <p>The pattern: players behind call much tighter, so shoves from late position get far wider, and calling off a stack takes a much stronger hand than the pot odds alone suggest.</p>
+
+    <h2 id="cost">What a mistake costs</h2>
+    <p>Every wrong answer shows what it cost in big blinds, and the <a href="/review/">mistake review</a> adds them up so you can fix the expensive leaks first.</p>
+    <ul>
+      <li><b>Exact:</b> shove-or-fold spots, and calls against an all-in 3-bet. The cost is the difference in expected value between your play and the chart's, from the same equity table and opponent ranges that solve the charts. At the bubble and a final table it's the prize equity you gave up, converted to big blinds at the table's average chip value.</li>
+      <li><b>Estimate:</b> everything deeper. The cost grows with the size of the pot and with how far your hand's equity is from the nearest hand where your play would have been right. Folding aces to a 3-bet shows as several big blinds; a borderline miss shows as a close call.</li>
+    </ul>
 
     <h2 id="score">Your Preflop IQ</h2>
     <p>Your score reflects your last 100 decisions, so it tracks how you're playing now rather than how you played last month.</p>

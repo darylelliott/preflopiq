@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Range Charts · Preflop IQ</title>
-<link rel="canonical" href="https://preflopiq.pages.dev/charts/">
-<meta name="description" content="Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.">
-<meta property="og:title" content="Range Charts · Preflop IQ">
-<meta property="og:description" content="Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.">
+<title>Mistake Review · Preflop IQ</title>
+<link rel="canonical" href="https://preflopiq.pages.dev/review/">
+<meta name="description" content="Review your preflop mistakes by what they cost in big blinds, replay each hand with its chart, and drill the ones you keep missing.">
+<meta property="og:title" content="Mistake Review · Preflop IQ">
+<meta property="og:description" content="Review your preflop mistakes by what they cost in big blinds, replay each hand with its chart, and drill the ones you keep missing.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +23,7 @@
     <nav class="sitenav" aria-label="Main">
       <a href="/">Trainer</a>
       <a href="/daily/">Daily</a>
-      <a href="/progress/">Progress</a>
+      <a href="/progress/" aria-current="page">Progress</a>
       <a href="/ranges/">Ranges</a>
       <a href="/clubs/">Clubs</a>
       <a href="/pricing/">Pricing</a>
@@ -35,28 +35,24 @@
 <section class="feltband">
   <div class="feltband-in">
   <div class="page-head">
-    <span class="eyebrow">Range charts</span>
-    <h1>Every spot, every hand</h1>
-    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. The 8-handed 100bb opening and calling charts are free here; Pro unlocks every format, 3-bet pots and squeezes, and bubble and final-table charts. Every opening and calling chart is also free to read in the <a href="/ranges/">range library</a>.</p>
+    <span class="eyebrow">Mistake review</span>
+    <h1>What your mistakes cost</h1>
+    <p class="lede">Every hand you miss is saved here with what it cost in big blinds, so you can fix the expensive ones first.</p>
   </div>
   </div>
 </section>
 <div class="wrap">
-  <div class="setup">
-    <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
-    <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
-    <div class="seg" id="stageseg" role="group" aria-labelledby="lbl-stage" hidden><span class="seglbl" id="lbl-stage">Stage</span><div class="segbtns" id="stage"></div></div>
+  <section id="r-summary" aria-label="Summary"></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-rspots"><h2 id="h-rspots">Costliest spots</h2><p class="hint">Where your chips go, added up across every mistake.</p><div id="r-spots"></div></section>
+    <section class="pcard" aria-labelledby="h-rhow"><h2 id="h-rhow">How costs are measured</h2>
+      <p>Shove-or-fold spots at 10bb and 15bb, and calls against an all-in 3-bet, use the <b>exact</b> expected value from the same equity table that solves the charts. At the bubble and a final table the cost is the prize equity you gave up, converted to big blinds at the table’s average chip value.</p>
+      <p>Deeper spots are <b>estimates</b>: they scale with the size of the pot and with how far your hand was from one where your play would have been right. Treat a small estimate as a close call and a big one as a real leak.</p></section>
   </div>
-  <div class="spotpick" id="spots"></div>
-  <main class="chartmain">
-    <section class="chartcard" id="chartcard" aria-labelledby="chart-title">
-      <div class="chartlock" id="chartlock" hidden></div>
-      <div class="blk"><h3 id="chart-title"></h3></div>
-      <div class="gridwrap"><div class="bigrid" id="grid" role="group" aria-label="Range chart"></div></div>
-      <div class="legend" id="legend"></div>
-    </section>
-    <section class="panel" id="detail" aria-live="polite"></section>
-  </main>
+  <section class="pcard" aria-labelledby="h-rlist">
+    <div class="lbhead"><h2 id="h-rlist">Your mistakes</h2><div class="tabs" role="tablist" id="r-sort"><button role="tab" data-sort="cost" aria-selected="true">Costliest</button><button role="tab" data-sort="recent" aria-selected="false">Most recent</button></div></div>
+    <div id="r-list"></div>
+  </section>
 </div>
 <footer class="sitefoot">
   <div class="sitefoot-in">
@@ -68,7 +64,11 @@
 <script src="/config.js"></script>
 <script src="/auth.js"></script>
 <script src="/engine.js"></script>
+<script src="/achievements.js"></script>
+<script src="/player.js"></script>
+<script src="/fx.js"></script>
 <script src="/pro-data.js"></script>
-<script src="/charts.js"></script>
+<script src="/table.js"></script>
+<script src="/review.js"></script>
 </body>
 </html>

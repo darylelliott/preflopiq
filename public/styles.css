@@ -690,3 +690,46 @@ body>.wrap{width:100%}
 .pcard .form .rowbtns input{flex:1;min-width:160px}
 .check{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;cursor:pointer}
 .check input{margin-top:3px;width:auto}
+
+/* ---------- Pro spots: 3-bet pots, squeezes, limped pots, ICM, mistake costs ---------- */
+.seat.called{border-color:var(--call);box-shadow:0 0 0 2px var(--call)}
+.bet.called{background:var(--call);color:var(--call-ink);border-color:rgba(255,255,255,.6)}
+.act[data-a="4bet"]{background:var(--raise);color:var(--raise-ink)}
+.act[data-a="check"]{background:var(--call);color:var(--call-ink)}
+.tag.check{background:var(--call);color:var(--call-ink)}
+.cell.check,.bigrid button.check,.rgrid .check{background:var(--call);color:var(--call-ink)}
+.cell.na,.bigrid button.na{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--line) 4px 6px);color:var(--muted);opacity:.6}
+.legend i.na-sw{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--muted) 3px 4px);border:1px solid var(--line)}
+.protag{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:.66rem;line-height:1.35;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);vertical-align:1px;margin-left:4px}
+.chip[aria-pressed="true"] .protag{background:var(--gold);color:var(--gold-ink)}
+.costline{margin:0;font-size:.92rem;color:var(--muted);display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+.costline b{color:var(--ink);font-family:var(--f-mono)}
+.costline.big b{color:var(--bad)}
+.costline span{font-family:var(--f-display);font-weight:600;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:0 7px}
+
+/* ---------- mistake review ---------- */
+.rsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+@media (max-width:560px){.rtile.rcta{grid-column:1/-1}.rtile>b{font-size:1.5rem}}
+.rtile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rtile>b{font-family:var(--f-mono);font-size:1.9rem;line-height:1.1}
+.rtile span{font-family:var(--f-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;color:var(--muted)}
+.rtile small{font-size:.8rem;color:var(--muted)}
+.rtile.rcta{justify-content:center;gap:8px}
+.rtile.rcta .btn{text-decoration:none;align-self:flex-start}
+.misses{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.miss{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.miss.cleared{opacity:.6}
+.miss.open{border-color:var(--gold)}
+.missbtn{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:10px 12px}
+.missbtn:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.missbtn:hover{background:var(--surface-2)}
+.missbtn .hk{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;min-width:3.2em}
+.mwhat{display:flex;flex-direction:column;min-width:0}
+.mwhat small,.mpick,.mcost small{font-size:.8rem;color:var(--muted)}
+.mcost{display:flex;flex-direction:column;align-items:flex-end;font-family:var(--f-mono)}
+.mcost.big b{color:var(--bad)}
+.missbody{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px}
+.missbody .prompt{margin:0}
+.lockbox.inline{max-width:none;box-shadow:none;margin-top:12px}
+@media (max-width:560px){.missbtn{grid-template-columns:auto minmax(0,1fr) auto}.mpick{display:none}}
+.missbody .gridwrap{max-width:520px}

@@ -65,13 +65,13 @@
     if(answered||!cur)return;
     const btn=$('act-'+a);if(!btn)return;
     answered=true;
-    const {s,h}=cur,right=actionOf(s,h.hand);
+    const {s,h}=cur,right=actionOf(s,h.hand),loss=evLoss(s,h.hand,a);
     document.querySelectorAll('.act').forEach(b=>{b.disabled=true;if(b.dataset.a===right)b.classList.add('right');});
     btn.classList.add('picked');
-    const res=PL.record(stats,{s,k:h.hand,pick:a,right});
+    const res=PL.record(stats,{s,k:h.hand,pick:a,right,loss,src:'d'});
     run.picks.push(a);run.marks=(run.marks||[]).concat([res.ok?1:0]);persist();
     PL.save(stats);
-    $('panel').innerHTML=TBL.after(s,h.hand,a,right);
+    $('panel').innerHTML=TBL.after(s,h.hand,a,right,{loss});
     FX.play(res.ok?'right':'wrong');
     if(res.fresh.length)ACH.celebrate(res.fresh);
     idx++;dots();

@@ -26,6 +26,8 @@ The site is plain static HTML, CSS and JavaScript in `public/`, with no build st
 | `functions/api/unsubscribe.js` | One-click unsubscribe from reminder emails (signed links) |
 | `lib/email.js` | Email scheduling helpers and templates, shared by the Worker and the unsubscribe function |
 | `workers/reminders/` | Hourly Cloudflare Worker that sends streak reminders and weekly recaps (see SETUP.md) |
+| `public/review/` + `review.js` | Mistake review: bb lost, costliest spots, every miss with its chart (Pro keeps 200) |
+| `public/pro-data.js` | Generated Pro data: ICM solutions, exact mistake costs, 25bb 3-bet-shove calls |
 | `public/player.js` | Shared stats, Preflop IQ, day streak, ranks, mastery, leaks and settings |
 | `public/table.js` | Shared felt, cards, prompt and explanation rendering |
 | `public/daily-core.js` | Deterministic daily hand generator and scorer (also runs on the server) |
@@ -57,6 +59,9 @@ The script also builds the range library (about 590 pages) from `node tools/rang
 - **Ranks:** seven rungs by hands played and best Preflop IQ; never drop.
 - **Mastery and leaks:** bronze/silver/gold per spot; the leak finder links to `/?drill=N-D-spotId`, which drills one spot. `/?fmt=N-D` opens a format.
 - **Shot clock:** optional 7 seconds per decision; timing out folds.
+- **Pro spots:** 3-bet pots at 25bb+ (facing a 3-bet, squeezes, blind-vs-blind limps) are built in `buildProSpots()` in `engine.js` and marked `pro`. The daily challenge and the range library skip them, so neither changes. "All spots" mixes them in a quarter of the time; the "3-bet pots" chip drills them alone.
+- **Bubble and final table:** at 10/15bb with 3+ players, `STAGE` (`cev`, `bub`, `ft`) switches the push/fold ranges to ICM solutions from `pro-data.js`. Stats keys carry the stage: `8-10ft-rfi-UTG`.
+- **Mistake costs:** `evLoss()` in `engine.js` returns what a wrong answer cost in bb: exact for push/fold and all-in 3-bet calls (from `pro-data.js`), estimated elsewhere. Stats keep `ev` (totals), `lh` (last 100 costs), `per[key].l` (per spot) and `miss` (last 200 mistakes). `/?review=1` drills uncleared misses.
 - **Clubs** (`/clubs/`): a player creates a club and shares its invite link (`/clubs/?join=CODE`). Members see a club-only board for each daily challenge. Up to 10 clubs per player, 200 members per club.
 - **Reminder emails:** a streak reminder at 7 p.m. local when a 2+ day streak is at risk, and a Sunday recap. Players opt out on the account page or from the email.
 - **Leaderboard:** `/api/daily-submit` re-scores answers with `lib/engine.mjs`, so a score can't be faked by editing the page. After changing `public/engine.js` or `public/daily-core.js`, run `node tools/build-server-engine.js` so the server matches.
@@ -98,6 +103,8 @@ Node 18+ required. No dependencies.
 | `tools/equity-matrix.js` | Simulates every 169×169 matchup with card removal → `tools/data/matrix.json` |
 | `tools/nash.js` | Push/fold Nash solver (fictitious play) |
 | `tools/build-ranges.js` | Rebuilds the `EQA` and `NASH` data in `public/engine.js` |
+| `tools/icm.js` | Push/fold game with chip-EV or ICM payoffs: solver and EV evaluation |
+| `tools/build-pro.js` | Rebuilds `public/pro-data.js` (about a minute). Rerun after changing ranges in `engine.js` |
 
 `tools/data/matrix.json` is committed (20,000 boards per matchup), so you usually only need:
 

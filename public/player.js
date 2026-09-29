@@ -86,18 +86,25 @@ const PL=(function(){
     if(!p||!p.n)return null;const a=p.c/p.n;
     if(p.n>=50&&a>=0.9)return 'gold';if(p.n>=25&&a>=0.8)return 'silver';if(p.n>=10&&a>=0.7)return 'bronze';return null;
   }
-  function parseKey(key){const m=key.match(/^(\d+)-(\d+)-(.+)$/);if(!m)return null;return {n:+m[1],d:+m[2],id:m[3]};}
+  // Stats keys: "8-100-rfi-UTG", or "8-10ft-vs-BB-SB" for a spot at a final table (bub = bubble).
+  function parseKey(key){const m=key.match(/^(\d+)-(\d+)(bub|ft)?-(.+)$/);if(!m)return null;return {n:+m[1],d:+m[2],st:m[3]||'cev',id:m[4]};}
+  // Position names can contain a dash (UTG+1 is stored as-is), so split on the known shapes.
   function spotName(id,d){
-    const push=d<=15,p=id.split('-');
-    if(p[0]==='rfi')return `${p.slice(1).join('-')} ${push?'shove':'open'}`;
-    return `${p[1]} vs ${p.slice(2).join('-')} ${push?'shove':'open'}`;
+    const push=d<=15,m=id.match(/^(rfi|vs|v3|sq|lp)-(.+)$/);if(!m)return id;
+    const pos=m[2].match(/(UTG\+\d|UTG|LJ|HJ|CO|BTN|SB|BB)/g)||[];
+    if(m[1]==='rfi')return `${pos[0]} ${push?'shove':'open'}`;
+    if(m[1]==='v3')return `${pos[0]} vs ${pos[1]} 3-bet`;
+    if(m[1]==='sq')return `${pos[0]} vs ${pos[1]} open + ${pos[2]} call`;
+    if(m[1]==='lp')return `${pos[0]} vs ${pos[1]} limp`;
+    return `${pos[0]} vs ${pos[1]} ${push?'shove':'open'}`;
   }
-  const formatName=(n,d)=>`${n===2?'Heads-up':n+'-handed'} · ${d}bb`;
+  const STG={bub:'Bubble',ft:'Final table'};
+  const formatName=(n,d,st)=>`${n===2?'Heads-up':n+'-handed'} · ${d}bb${STG[st]?' · '+STG[st]:''}`;
   function leaks(s,limit=3){
-    return Object.entries(s.per||{}).map(([key,p])=>({key,...parseKey(key),n:p.n,c:p.c,acc:p.c/p.n}))
+    return Object.entries(s.per||{}).map(([key,p])=>{const k=parseKey(key)||{};return {key,...k,players:k.n,n:p.n,c:p.c,l:p.l||0,acc:p.c/p.n};})
       .filter(x=>x.id&&x.n>=6&&x.acc<0.85)
       .sort((a,b)=>(b.n-b.c)-(a.n-a.c)||a.acc-b.acc).slice(0,limit)
-      .map(x=>({...x,name:spotName(x.id,x.d),format:formatName(x.n,x.d)}));
+      .map(x=>({...x,name:spotName(x.id,x.d),format:formatName(x.players,x.d,x.st)}));
   }
 
   // ---------- recording an answer (trainer and daily) ----------
@@ -107,7 +114,14 @@ const PL=(function(){
     const border=sc.border!==HANDS&&sc.border.includes(k);
     const rankBefore=rank(s).i,before=iq(s);
     s.total++;if(ok){s.correct++;s.streak++;s.best=Math.max(s.best,s.streak);}else s.streak=0;
-    const key=`${N}-${D}-${sc.id}`,p=s.per[key]||(s.per[key]={n:0,c:0});p.n++;if(ok)p.c++;
+    const f=fmtKey(),key=`${f}-${sc.id}`,p=s.per[key]||(s.per[key]={n:0,c:0});p.n++;if(ok)p.c++;
+    // Chips lost: running totals, the last 100 decisions, per spot, and the last 200 mistakes.
+    const lost=ok||!ctx.loss?0:Math.round(ctx.loss.bb*100)/100;
+    if(!ok)p.l=Math.round(((p.l||0)+lost)*100)/100;
+    s.ev=s.ev||{bb:0,n:0};s.ev.bb=Math.round((s.ev.bb+lost)*100)/100;s.ev.n++;
+    s.lh=s.lh||[];s.lh.push(lost);if(s.lh.length>100)s.lh.shift();
+    if(!ok&&!ctx.review){s.miss=s.miss||[];s.miss.push({t:Date.now(),f,id:sc.id,k,p:pick,r:right,l:lost,x:ctx.loss&&ctx.loss.exact?1:0,src:ctx.src||'t'});
+      if(s.miss.length>200)s.miss.shift();}
     s.hist.push({p:ok?1:(pick!=='fold'&&right!=='fold'?0.4:0),w:border?1.5:1});
     if(s.hist.length>100)s.hist.shift();
     const after=iq(s);

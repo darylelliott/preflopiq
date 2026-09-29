@@ -37,7 +37,7 @@ const formats = [];
 for (const n of [2, 3, 4, 5, 6, 7, 8, 9]) for (const d of E.DEPTHS) {
   E.set(n, d);
   const push = E.isPush();
-  const spots = E.scn().map(s => {
+  const spots = E.scn().filter(s => !s.pro).map(s => {   // Pro spots (3-bet pots) stay out of the free library
     const acts = E.HANDS.map(k => E.actionOf(s, k));
     const by = {};
     acts.forEach((a, i) => { (by[a] = by[a] || new Set()).add(E.HANDS[i]); });

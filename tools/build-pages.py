@@ -70,7 +70,7 @@ tb = re.sub(r'<p class="foot">.*?</p>',
   '<p class="foot">10bb and 15bb ranges are solved Nash equilibria; 25bb and deeper are modeled. <a href="/how-it-works/#ranges">How the ranges are built</a>.</p>', tb, flags=re.S)
 (root / 'index.html').write_text(page('/', 'Preflop IQ · Tournament Preflop Trainer',
   'Drill tournament preflop ranges for 2-9 players and 10-100bb stacks. Nash-solved push/fold ranges, an explanation after every hand, and a Preflop IQ score.',
-  tb, PLAYER + ['/table.js', '/daily-core.js', '/trainer.js']))
+  tb, PLAYER + ['/pro-data.js', '/table.js', '/daily-core.js', '/trainer.js']))
 
 # ---------- charts ----------
 charts_body = '''
@@ -78,11 +78,12 @@ charts_body = '''
   <div class="page-head">
     <span class="eyebrow">Range charts</span>
     <h1>Every spot, every hand</h1>
-    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free here; Pro unlocks the rest. Every chart is also free to read in the <a href="/ranges/">range library</a>.</p>
+    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. The 8-handed 100bb opening and calling charts are free here; Pro unlocks every format, 3-bet pots and squeezes, and bubble and final-table charts. Every opening and calling chart is also free to read in the <a href="/ranges/">range library</a>.</p>
   </div>
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
     <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+    <div class="seg" id="stageseg" role="group" aria-labelledby="lbl-stage" hidden><span class="seglbl" id="lbl-stage">Stage</span><div class="segbtns" id="stage"></div></div>
   </div>
   <div class="spotpick" id="spots"></div>
   <main class="chartmain">
@@ -98,7 +99,7 @@ charts_body = '''
 (root / 'charts' ).mkdir(exist_ok=True)
 (root / 'charts' / 'index.html').write_text(page('/charts/', 'Range Charts · Preflop IQ',
   'Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.',
-  charts_body, ['/engine.js', '/charts.js']))
+  charts_body, ['/engine.js', '/pro-data.js', '/charts.js']))
 
 # ---------- how it works ----------
 how = '''
@@ -109,7 +110,7 @@ how = '''
     <p class="lede">Preflop IQ tests one decision at a time: the first action you make before the flop in a tournament. Here's the game it models, how every chart is built, and how your score is calculated.</p>
   </div>
   <nav class="toc" aria-label="On this page">
-    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
   </nav>
   <article class="prose">
     <h2 id="format">The format</h2>
@@ -117,7 +118,7 @@ how = '''
     <ul>
       <li><b>Table size:</b> 2 to 9 players. Position names follow the usual convention, so a 6-handed table runs UTG, HJ, CO, BTN, SB, BB.</li>
       <li><b>Stack depth:</b> 100, 60, 40, 25, 15 or 10 big blinds, with everyone at the table equally deep.</li>
-      <li><b>Chip EV:</b> the ranges maximize chips won. They don't account for payout pressure (ICM), so near the bubble or at a final table the right play is often tighter than these charts.</li>
+      <li><b>Stage:</b> by default the ranges maximize chips won (chip EV). At 10bb and 15bb with three or more players, Pro adds <b>Bubble</b> and <b>Final table</b> ranges that account for payout pressure (ICM).</li>
     </ul>
     <div class="tablewrap"><table>
       <thead><tr><th>Stack</th><th>Open size</th><th>Small blind open</th><th>3-bet size</th></tr></thead>
@@ -138,6 +139,13 @@ how = '''
       <li><b>Facing a raise:</b> someone has opened and you decide to fold, call or 3-bet. The spots are the big blind against the first seat, the cutoff and the small blind; the cutoff against the first seat; the button against the hijack and the cutoff; and both blinds against a cutoff or button open. Spots are dropped automatically when the table is too short to have them.</li>
     </ul>
 
+    <p>Pro adds three kinds of 3-bet pot at 25bb and deeper:</p>
+    <ul>
+      <li><b>Facing a 3-bet:</b> you opened, someone behind re-raised, and you choose to fold, call or 4-bet. You're only dealt hands you would have opened. At 25bb the 3-bet is all-in, so it's call or fold.</li>
+      <li><b>Squeezes:</b> one player opened, another called, and you fold, overcall or squeeze. The spots are the blinds against a cutoff open and button call, and the button and big blind against a first-seat open and cutoff call.</li>
+      <li><b>Blind versus blind limp:</b> the small blind (the button heads-up) limps and the big blind checks or raises.</li>
+    </ul>
+
     <h2 id="ranges">How ranges are built</h2>
     <p>Each chart is labeled on screen as either a <b>Nash solution</b> or <b>modeled</b>, because they're made in two different ways.</p>
     <h3>10bb and 15bb: solved</h3>
@@ -150,6 +158,24 @@ how = '''
     <h3>25bb and deeper: modeled</h3>
     <p>With raises, 3-bets and play after the flop in the picture, a true solve needs a full preflop solver running for hours. Instead, these charts rank all 169 hands by all-in equity, give extra weight to suited, connected and paired hands as stacks get deeper (they win bigger pots when they hit), and take the top slice of that ranking at typical tournament frequencies for each seat. The shapes are close to published solver charts, but borderline hands can differ.</p>
     <div class="callout">If a modeled chart disagrees with a solver you trust on a borderline hand, trust the solver. The solved 10bb and 15bb charts are exact within the assumptions above.</div>
+    <h3>3-bet pots</h3>
+    <p>Facing a 3-bet, you continue with a little under half of your opening range, more in position and against wide 3-bettors: the strongest hands 4-bet, the most playable call, and the rest fold. At 100bb a suited wheel ace joins the 4-bets as a bluff. The 3-betting ranges are the same ones the facing-a-raise charts use. When the 3-bet is all-in (25bb), there's nothing left to model: the chart calls with every hand whose equity against the 3-bet range, from the full equity table, beats the price.</p>
+    <p>Squeeze ranges are a little tighter than 3-betting ranges for value, because two players can call, but go bigger in size. Overcalls are widest from the big blind, which closes the action at a good price.</p>
+    <h3>Bubble and final table: ICM</h3>
+    <p>Near the money, chips aren't worth the same as prize money: losing your stack can cost your whole payout, while doubling up doesn't double it. The Independent Chip Model (ICM) converts every stack into its share of the remaining prizes, and these ranges are a Nash equilibrium solved on those prize shares instead of chips, with the same solver as the chip-EV charts. Folding is valued by what happens next, since others can still bust each other.</p>
+    <ul>
+      <li><b>Final table:</b> the N players left are paid 25%, 17%, 12.5%, 9.5%, 7.5%, 6%, 5%, 4% and 3.3% of the prize pool, from first down (the top N of those).</li>
+      <li><b>Bubble:</b> the same structure, but the next player out gets nothing.</li>
+      <li>Everyone is equally deep, as in every other chart. With uneven stacks the big stacks can push harder and the short stacks call tighter still.</li>
+    </ul>
+    <p>The pattern: players behind call much tighter, so shoves from late position get far wider, and calling off a stack takes a much stronger hand than the pot odds alone suggest.</p>
+
+    <h2 id="cost">What a mistake costs</h2>
+    <p>Every wrong answer shows what it cost in big blinds, and the <a href="/review/">mistake review</a> adds them up so you can fix the expensive leaks first.</p>
+    <ul>
+      <li><b>Exact:</b> shove-or-fold spots, and calls against an all-in 3-bet. The cost is the difference in expected value between your play and the chart's, from the same equity table and opponent ranges that solve the charts. At the bubble and a final table it's the prize equity you gave up, converted to big blinds at the table's average chip value.</li>
+      <li><b>Estimate:</b> everything deeper. The cost grows with the size of the pot and with how far your hand's equity is from the nearest hand where your play would have been right. Folding aces to a 3-bet shows as several big blinds; a borderline miss shows as a close call.</li>
+    </ul>
 
     <h2 id="score">Your Preflop IQ</h2>
     <p>Your score reflects your last 100 decisions, so it tracks how you're playing now rather than how you played last month.</p>
@@ -234,7 +260,7 @@ about = '''
     </ul>
 
     <h2>Free and Pro</h2>
-    <p>Everyone gets 25 hands in the trainer, the whole range chart library and the interactive explorer at 8-handed 100bb for free, no sign-up needed. Pro unlocks unlimited hands and every table size and stack depth. See <a href="/pricing/">Pricing</a>.</p>
+    <p>Everyone gets 25 hands in the trainer, the whole range chart library and the interactive explorer at 8-handed 100bb for free, no sign-up needed. Pro unlocks unlimited hands at every table size and stack depth, 3-bet pots and squeezes, bubble and final-table ranges, and the full mistake review. See <a href="/pricing/">Pricing</a>.</p>
 
     <h2>Limits</h2>
     <p>Preflop IQ covers first-in opens and your first response to a raise. It doesn't cover 4-bets, limped pots or multiway spots yet, and its charts use chip EV, so it doesn't adjust for payout pressure near the money or at a final table.</p>
@@ -268,7 +294,7 @@ pricing = """
   <div class="page-head">
     <span class="eyebrow">Pricing</span>
     <h1>Start free. Go Pro when it clicks.</h1>
-    <p class="lede">Try 25 hands with no sign-up. Pro unlocks the whole trainer and every chart.</p>
+    <p class="lede">Try 25 hands with no sign-up. Pro unlocks the whole trainer, 3-bet pots, bubble and final-table play, and a review of what every mistake cost you.</p>
   </div>
   <div class="tiers">
     <section class="tier">
@@ -276,9 +302,10 @@ pricing = """
       <p class="tier-price">$0</p>
       <ul>
         <li>25 trainer hands, no account needed</li>
-        <li>The full range chart library</li>
+        <li>The range chart library: every opening and calling chart</li>
         <li>The interactive chart explorer at 8-handed 100bb</li>
-        <li>Full explanations and your Preflop IQ score</li>
+        <li>A taste of every Pro spot inside your 25 hands</li>
+        <li>Full explanations, your Preflop IQ score and your three latest mistakes</li>
       </ul>
       <a class="btn ghostbtn" href="/">Start training</a>
     </section>
@@ -290,10 +317,11 @@ pricing = """
       </div>
       <p class="pw-error" id="p-error" role="alert" hidden></p>
       <ul>
-        <li>Unlimited trainer hands</li>
-        <li>Every table size from heads-up to 9-handed</li>
-        <li>Every stack depth from 100bb to 10bb, including solved push/fold ranges</li>
-        <li>The interactive chart explorer at every format, with the reasoning for every hand</li>
+        <li>Unlimited trainer hands at every table size and stack depth</li>
+        <li><b>3-bet pots:</b> facing a 3-bet, squeezes, and blind-versus-blind limped pots</li>
+        <li><b>Bubble and final table:</b> push/fold ranges solved for payout pressure (ICM)</li>
+        <li><b>Mistake review:</b> what every miss cost in big blinds, your costliest spots, and a drill that replays your misses until you get them right</li>
+        <li>The chart explorer for every format and spot, with the reasoning for every hand</li>
         <li>Progress synced to your account across devices</li>
       </ul>
     </section>
@@ -310,7 +338,7 @@ pricing = """
 </div>"""
 (root / 'pricing').mkdir(exist_ok=True)
 (root / 'pricing' / 'index.html').write_text(page('/pricing/', 'Pricing · Preflop IQ',
-  'Preflop IQ is free for 25 hands. Pro unlocks unlimited hands and every table size and stack depth for $7.99 a month or $59 a year.',
+  'Preflop IQ is free for 25 hands. Pro unlocks unlimited hands, 3-bet pots, bubble and final-table ICM ranges and a full mistake review for $7.99 a month or $59 a year.',
   pricing, ['/pricing.js']))
 
 # ---------- account ----------
@@ -369,7 +397,7 @@ daily = """
 (root / 'daily').mkdir(exist_ok=True)
 (root / 'daily' / 'index.html').write_text(page('/daily/', 'Daily Challenge · Preflop IQ',
   'Ten tournament preflop hands a day, the same for everyone. Free to play, share your score, and challenge a friend to the same hands.',
-  daily, PLAYER + ['/table.js', '/daily-core.js', '/leaderboard.js', '/daily.js']))
+  daily, PLAYER + ['/pro-data.js', '/table.js', '/daily-core.js', '/leaderboard.js', '/daily.js']))
 
 # ---------- progress ----------
 progress = """
@@ -382,7 +410,7 @@ progress = """
   <section id="p-rank" aria-label="Rank"></section>
   <div class="pgrid">
     <section class="pcard" aria-labelledby="h-streak"><h2 id="h-streak">Day streak</h2><div id="p-streak"></div></section>
-    <section class="pcard" aria-labelledby="h-leaks"><h2 id="h-leaks">Your leaks</h2><p class="hint">The spots where you miss the most. Drill one and watch it climb.</p><div id="p-leaks"></div></section>
+    <section class="pcard" aria-labelledby="h-leaks"><h2 id="h-leaks">Your leaks</h2><p class="hint">The spots where you miss the most. Drill one and watch it climb.</p><div id="p-leaks"></div><a class="btn ghostbtn" href="/review/">Mistake review: what each miss cost</a></section>
   </div>
   <section class="pcard" aria-labelledby="h-mastery"><h2 id="h-mastery">Spot mastery</h2><div id="p-mastery"></div></section>
   <div class="pgrid">
@@ -397,6 +425,31 @@ progress = """
 (root / 'progress').mkdir(exist_ok=True)
 (root / 'progress' / 'index.html').write_text(page('/progress/', 'Your Progress · Preflop IQ',
   'Your Preflop IQ rank, day streak, biggest leaks, spot mastery and a shareable card.', progress, PLAYER + ['/progress.js']))
+
+# ---------- mistake review ----------
+review = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Mistake review</span>
+    <h1>What your mistakes cost</h1>
+    <p class="lede">Every hand you miss is saved here with what it cost in big blinds, so you can fix the expensive ones first.</p>
+  </div>
+  <section id="r-summary" aria-label="Summary"></section>
+  <div class="pgrid">
+    <section class="pcard" aria-labelledby="h-rspots"><h2 id="h-rspots">Costliest spots</h2><p class="hint">Where your chips go, added up across every mistake.</p><div id="r-spots"></div></section>
+    <section class="pcard" aria-labelledby="h-rhow"><h2 id="h-rhow">How costs are measured</h2>
+      <p>Shove-or-fold spots at 10bb and 15bb, and calls against an all-in 3-bet, use the <b>exact</b> expected value from the same equity table that solves the charts. At the bubble and a final table the cost is the prize equity you gave up, converted to big blinds at the table’s average chip value.</p>
+      <p>Deeper spots are <b>estimates</b>: they scale with the size of the pot and with how far your hand was from one where your play would have been right. Treat a small estimate as a close call and a big one as a real leak.</p></section>
+  </div>
+  <section class="pcard" aria-labelledby="h-rlist">
+    <div class="lbhead"><h2 id="h-rlist">Your mistakes</h2><div class="tabs" role="tablist" id="r-sort"><button role="tab" data-sort="cost" aria-selected="true">Costliest</button><button role="tab" data-sort="recent" aria-selected="false">Most recent</button></div></div>
+    <div id="r-list"></div>
+  </section>
+</div>"""
+(root / 'review').mkdir(exist_ok=True)
+(root / 'review' / 'index.html').write_text(page('/review/', 'Mistake Review · Preflop IQ',
+  'Review your preflop mistakes by what they cost in big blinds, replay each hand with its chart, and drill the ones you keep missing.', review,
+  PLAYER + ['/pro-data.js', '/table.js', '/review.js'], nav_path='/progress/'))
 
 # ---------- leaderboard ----------
 lb = """
