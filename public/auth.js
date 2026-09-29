@@ -6,6 +6,7 @@
   const FREE_HANDS=25;
   const PRICES={monthly:'$7.99/month',annual:'$59/year'};
   const configured=!!(cfg.supabaseUrl&&cfg.supabaseAnonKey&&window.supabase);
+  const payments=configured&&cfg.payments===true;   // no paywall until Stripe is live
   const ls={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
   const sb=configured?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,detectSessionInUrl:true,autoRefreshToken:true}}):null;
 
@@ -57,7 +58,7 @@
   })().catch(e=>{console.error('Account load failed',e);state.loaded=true;return state;}).then(s=>{emit();return s;});
 
   function handsUsed(){return state.user?(state.profile?.hands_played||0):localUsed();}
-  function paywallOn(){return configured&&state.loaded&&!state.isPro;}
+  function paywallOn(){return payments&&state.loaded&&!state.isPro;}
   function handsLeft(){return paywallOn()?Math.max(0,FREE_HANDS-handsUsed()):Infinity;}
   function locked(){return paywallOn()&&handsUsed()>=FREE_HANDS;}
 
@@ -85,7 +86,7 @@
     return out;
   }
   async function checkout(plan){
-    if(!configured) throw new Error('Payments aren’t set up yet.');
+    if(!payments) throw new Error('Pro isn’t on sale yet. Everything is free for now.');
     if(!state.user){location.href=`/account/?next=${encodeURIComponent('checkout-'+plan)}`;return;}
     const {url}=await api('/api/checkout',{plan});location.href=url;
   }
@@ -106,6 +107,6 @@
     const {error}=await sb.from('profiles').update({email_prefs:next}).eq('id',state.user.id);
     if(error)throw new Error(error.message);state.profile.email_prefs=next;return next;
   }
-  window.PIQ={configured,ready,state,setEmailPrefs,FREE_HANDS,PRICES,client:sb,
+  window.PIQ={configured,payments,ready,state,setEmailPrefs,FREE_HANDS,PRICES,client:sb,
     onChange(f){listeners.push(f);},handsUsed,handsLeft,locked,paywallOn,recordHand,saveStats,checkout,portal,refresh,signOut};
 })();

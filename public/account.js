@@ -37,7 +37,10 @@ function render(){
   if(st.user){
     const sub=st.sub,pro=st.isPro,used=PIQ.handsUsed();
     let plan;
-    if(pro){
+    if(!PIQ.payments&&!pro){
+      plan=`<div class="planstatus"><span class="freebadge">Free</span>
+        <p>Every feature is open while Pro isn’t on sale yet, including 3-bet pots, bubble and final-table ranges, and the full mistake review.</p></div>`;
+    }else if(pro){
       plan=`<div class="planstatus pro"><span class="probadge">Pro</span>
         <p>${sub.cancel_at_period_end?`Your Pro plan ends on <b>${fmtDate(sub.current_period_end)}</b>. You can renew it any time before then.`:sub.current_period_end?`Renews on <b>${fmtDate(sub.current_period_end)}</b>.`:'Active.'}</p>
         <button class="btn" id="b-portal" type="button">Manage billing</button>
