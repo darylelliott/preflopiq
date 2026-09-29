@@ -22,21 +22,23 @@
   }
 
   async function loadAccount(session){
-    state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;state.onTrial=false;state.trialEnds=null;
+    state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;state.onTrial=false;state.comp=false;state.trialEnds=null;
     if(state.user){
       const [p,s]=await Promise.all([
-        sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone,full_name,plays,trial_ends').eq('id',state.user.id).maybeSingle(),
+        sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone,full_name,plays,trial_ends,comp').eq('id',state.user.id).maybeSingle(),
         sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
       ]);
       state.profile=p.data||{hands_played:0,stats:null};
       state.sub=s.data||null;
       // Reminder emails go out in the player's own evening, so keep their time zone current.
       try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz&&state.profile.timezone!==tz){state.profile.timezone=tz;sb.from('profiles').update({timezone:tz}).eq('id',state.user.id).then(()=>{});}}catch(e){}
-      // Pro is a paid (or Stripe-trialing) subscription, or the 7-day trial every new account gets.
+      // Pro is a paid (or Stripe-trialing) subscription, free Pro given by the owner (comp),
+      // or the 7-day trial every new account gets.
       const paid=!!state.sub&&['active','trialing'].includes(state.sub.status);
+      state.comp=!!state.profile.comp;
       state.trialEnds=state.profile.trial_ends?new Date(state.profile.trial_ends):null;
-      state.onTrial=!paid&&!!state.trialEnds&&state.trialEnds>new Date();
-      state.isPro=paid||state.onTrial;
+      state.onTrial=!paid&&!state.comp&&!!state.trialEnds&&state.trialEnds>new Date();
+      state.isPro=paid||state.comp||state.onTrial;
       // Hands played before signing in still count toward the free limit.
       const local=localUsed();
       if(!state.isPro&&local>(state.profile.hands_played||0)){

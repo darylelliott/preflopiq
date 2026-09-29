@@ -92,6 +92,19 @@ Also finish a daily challenge while signed in, choose a leaderboard name, and ch
 
 If Pro doesn't switch on, check **Stripe → Developers → Webhooks → your endpoint** for failed deliveries; the error message comes from the site.
 
+## Free Pro for chosen accounts (owner page)
+
+`/admin/` (not linked anywhere, not indexed) lists accounts, shows who is on a trial, paying or on free Pro, and has a **Free Pro** checkbox per account. Only signed-in accounts whose email is in the Cloudflare variable `ADMIN_EMAILS` (comma-separated, type Text) can use it. Free Pro never expires and never bills.
+
+## Turning the paywall on
+
+When Stripe is working (steps 2–4), set `payments: true` in `public/config.js` and push. At the same moment, give everyone who signed up while the site was free a fresh 7-day trial, so their trial isn't already used up. In Supabase → SQL Editor, run:
+
+```sql
+update public.profiles set trial_ends = now() + interval '7 days'
+where not comp and (trial_ends is null or trial_ends < now() + interval '7 days');
+```
+
 ## Going live
 
 Repeat step 2 in Stripe **live mode** (new prices, new webhook, new secret key), then replace `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY` and `STRIPE_PRICE_ANNUAL` in Cloudflare and redeploy.

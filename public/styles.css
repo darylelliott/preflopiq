@@ -747,3 +747,7 @@ body>.wrap{width:100%}
 .freeleft.trial b{color:var(--good)}
 .trialcta{align-self:stretch;justify-content:center;flex-wrap:wrap;text-decoration:none;margin:4px 0}
 .trialcta small{font-weight:400;opacity:.85}
+.admsearch .rowbtns input{flex:1;min-width:180px}
+.admtable td{vertical-align:top}
+.admtable small{color:var(--muted)}
+.admplan{display:flex;flex-direction:column;gap:2px;align-items:flex-start}

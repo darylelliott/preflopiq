@@ -139,6 +139,10 @@ alter table public.profiles add constraint plays_values check (plays is null or 
 grant update (full_name, plays) on public.profiles to authenticated;
 update public.profiles set trial_ends = created_at + interval '7 days' where trial_ends is null;
 
+-- ---------- Free Pro for chosen accounts ----------
+-- Safe to run again. Set from the owner's /admin/ page (server side); players can't change it.
+alter table public.profiles add column if not exists comp boolean not null default false;
+
 -- ---------- Table access ----------
 -- Newer Supabase projects may not grant the API roles access to new tables automatically.
 -- Row-level security above still decides which rows each player can see.

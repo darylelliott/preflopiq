@@ -38,7 +38,9 @@ function render(){
   if(st.user){
     const sub=st.sub,pro=st.isPro,used=PIQ.handsUsed();
     let plan;
-    if(PIQ.payments&&st.onTrial){
+    if(st.comp&&!(sub&&['active','trialing'].includes(sub.status))){
+      plan=`<div class="planstatus pro"><span class="probadge">Pro</span><p>Complimentary Pro: everything is unlocked, with no billing.</p></div>`;
+    }else if(PIQ.payments&&st.onTrial){
       const d=PIQ.trialDaysLeft();
       plan=`<div class="planstatus pro"><span class="probadge">Pro trial</span>
         <p><b>${d} day${d===1?'':'s'} left</b> of your free Pro trial (it ends ${fmtDate(st.trialEnds)}). Everything is unlocked. Pick a plan any time to keep it.</p>

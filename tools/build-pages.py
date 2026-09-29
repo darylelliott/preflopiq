@@ -10,8 +10,8 @@ FOOTNAV = NAV + [('/charts/', 'Chart explorer'), ('/leaderboard/', 'Leaderboard'
 PLAYER = ['/engine.js', '/achievements.js', '/player.js', '/fx.js']
 SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'
 
-def page(path, title, desc, body, scripts=(), nav_path=None):
-    if path and not path.endswith('.html'):
+def page(path, title, desc, body, scripts=(), nav_path=None, private=False):
+    if path and not path.endswith('.html') and not private:
         SITEMAP.append(path)
     active = nav_path or path
     cur = ' aria-current="page"'
@@ -32,7 +32,7 @@ def page(path, title, desc, body, scripts=(), nav_path=None):
 <meta name="color-scheme" content="light dark">
 <title>{title}</title>
 {'<link rel="canonical" href="' + SITE + path + '">' if path and not path.endswith('.html') else ''}
-<meta name="description" content="{desc}">
+<meta name="description" content="{desc}">{chr(10)+'<meta name="robots" content="noindex">' if private else ''}
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="website">
@@ -452,6 +452,19 @@ review = """
   'Review your preflop mistakes by what they cost in big blinds, replay each hand with its chart, and drill the ones you keep missing.', review,
   PLAYER + ['/pro-data.js', '/table.js', '/review.js'], nav_path='/progress/'))
 
+# ---------- owner admin (not linked, not indexed; /api/admin checks ADMIN_EMAILS) ----------
+admin = """
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Owner</span>
+    <h1>Accounts</h1>
+    <p class="lede">Look up players and give any account free Pro.</p>
+  </div>
+  <section class="pcard" id="adm"><p class="hint">Loading…</p></section>
+</div>"""
+(root / 'admin').mkdir(exist_ok=True)
+(root / 'admin' / 'index.html').write_text(page('/admin/', 'Accounts · Preflop IQ', 'Owner tools.', admin, ['/admin.js'], private=True))
+
 # ---------- leaderboard ----------
 lb = """
 <div class="wrap">
@@ -677,5 +690,5 @@ urls = sorted(set(SITEMAP))
 prio = lambda u: '1.0' if u == '/' else '0.8' if u.count('/') <= 2 else '0.6'
 (root / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     ''.join(f'  <url><loc>{SITE}{u}</loc><priority>{prio(u)}</priority></url>\n' for u in urls if u not in ('/account/',)) + '</urlset>\n')
-(root / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /api/\n\nSitemap: {SITE}/sitemap.xml\n')
+(root / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: {SITE}/sitemap.xml\n')
 print(f'ok · {count} range pages · {len(urls)} URLs in sitemap')
