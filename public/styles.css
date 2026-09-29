@@ -648,3 +648,35 @@ body>.wrap{width:100%}
 /* Limp cells share the call color. */
 .cell.limp,.bigrid button.limp{background:var(--call);color:var(--call-ink)}
 .act[data-a="limp"]{background:var(--call);color:var(--call-ink)}
+
+/* ---------- range library ---------- */
+.crumbs{font-size:.85rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.crumbs a{color:var(--muted)}
+.crumbs a:hover{color:var(--ink)}
+.crumbs [aria-current]{color:var(--ink);font-weight:600}
+.rmain{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:880px){.rmain{grid-template-columns:minmax(0,1fr)}}
+.rmain .chartcard h2,.rmain .pcard h2{font-size:1.35rem}
+.rgrid{grid-template-columns:repeat(13,minmax(24px,1fr));gap:3px;min-width:320px}
+.rgrid .cell{font-size:clamp(8.5px,1.2vw,11.5px);border-radius:4px}
+.cell.raise{background:var(--raise);color:var(--raise-ink)}
+.rtext{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.rtext code{font-family:var(--f-mono);font-size:.88rem;line-height:1.6;background:var(--surface-2);border-radius:8px;padding:6px 10px;flex:1;min-width:0;overflow-wrap:anywhere}
+.rtext .tag{margin-top:6px}
+.edges{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.edges h3{font-size:1rem;margin:0 0 4px}
+.edges .hands{font-family:var(--f-mono);font-size:.92rem;margin:0}
+.rtable{width:100%}
+.rtable td{padding:7px 10px}
+.rtable tr.me td{background:color-mix(in srgb,var(--brass) 16%,transparent);font-weight:600}
+.rtable a{color:var(--call)}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px}
+.chiprow .chip{text-decoration:none}
+.chiprow .chip[aria-current="page"]{background:var(--felt);border-color:var(--felt);color:#fff}
+.spotlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.spotlist a{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 12px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);background:var(--surface)}
+.spotlist a:hover{border-color:var(--ink)}
+.spotlist a span{font-size:.85rem;color:var(--muted);text-align:right}
+@media (max-width:520px){.spotlist a{flex-direction:column;gap:2px}.spotlist a span{text-align:left}}
+.tag.limp{background:var(--call);color:var(--call-ink)}
+.sitefoot-in{color:rgba(244,236,220,.82)}

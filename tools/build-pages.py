@@ -3,14 +3,19 @@
 import re, pathlib
 here = pathlib.Path(__file__).resolve().parent
 root = here.parent / 'public'
-NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/charts/', 'Charts'), ('/pricing/', 'Pricing'), ('/about/', 'About')]
-FOOTNAV = NAV + [('/leaderboard/', 'Leaderboard'), ('/how-it-works/', 'How it works'), ('/achievements/', 'Achievements')]
+SITE = 'https://preflopiq.pages.dev'   # change to the custom domain once it's live
+NAV = [('/', 'Trainer'), ('/daily/', 'Daily'), ('/progress/', 'Progress'), ('/ranges/', 'Ranges'), ('/pricing/', 'Pricing'), ('/about/', 'About')]
+SITEMAP = []
+FOOTNAV = NAV + [('/charts/', 'Chart explorer'), ('/leaderboard/', 'Leaderboard'), ('/how-it-works/', 'How it works'), ('/achievements/', 'Achievements')]
 PLAYER = ['/engine.js', '/achievements.js', '/player.js', '/fx.js']
 SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'
 
-def page(path, title, desc, body, scripts=()):
+def page(path, title, desc, body, scripts=(), nav_path=None):
+    if path and not path.endswith('.html'):
+        SITEMAP.append(path)
+    active = nav_path or path
     cur = ' aria-current="page"'
-    nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == path else '', t) for h, t in NAV)
+    nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == active else '', t) for h, t in NAV)
     fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in FOOTNAV)
     js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', *scripts])
     # A page's heading block sits on a full-width strip of felt above its content.
@@ -26,6 +31,7 @@ def page(path, title, desc, body, scripts=()):
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>{title}</title>
+{'<link rel="canonical" href="' + SITE + path + '">' if path and not path.endswith('.html') else ''}
 <meta name="description" content="{desc}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
@@ -72,7 +78,7 @@ charts_body = '''
   <div class="page-head">
     <span class="eyebrow">Range charts</span>
     <h1>Every spot, every hand</h1>
-    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free; Pro unlocks the rest.</p>
+    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why. Every 8-handed 100bb chart is free here; Pro unlocks the rest. Every chart is also free to read in the <a href="/ranges/">range library</a>.</p>
   </div>
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
@@ -228,7 +234,7 @@ about = '''
     </ul>
 
     <h2>Free and Pro</h2>
-    <p>Everyone gets 25 hands in the trainer and every 8-handed 100bb chart for free, no sign-up needed. Pro unlocks unlimited hands and every table size and stack depth. See <a href="/pricing/">Pricing</a>.</p>
+    <p>Everyone gets 25 hands in the trainer, the whole range chart library and the interactive explorer at 8-handed 100bb for free, no sign-up needed. Pro unlocks unlimited hands and every table size and stack depth. See <a href="/pricing/">Pricing</a>.</p>
 
     <h2>Limits</h2>
     <p>Preflop IQ covers first-in opens and your first response to a raise. It doesn't cover 4-bets, limped pots or multiway spots yet, and its charts use chip EV, so it doesn't adjust for payout pressure near the money or at a final table.</p>
@@ -270,7 +276,8 @@ pricing = """
       <p class="tier-price">$0</p>
       <ul>
         <li>25 trainer hands, no account needed</li>
-        <li>Every 8-handed 100bb range chart</li>
+        <li>The full range chart library</li>
+        <li>The interactive chart explorer at 8-handed 100bb</li>
         <li>Full explanations and your Preflop IQ score</li>
       </ul>
       <a class="btn ghostbtn" href="/">Start training</a>
@@ -286,7 +293,7 @@ pricing = """
         <li>Unlimited trainer hands</li>
         <li>Every table size from heads-up to 9-handed</li>
         <li>Every stack depth from 100bb to 10bb, including solved push/fold ranges</li>
-        <li>All range charts, with the reasoning for every hand</li>
+        <li>The interactive chart explorer at every format, with the reasoning for every hand</li>
         <li>Progress synced to your account across devices</li>
       </ul>
     </section>
@@ -405,4 +412,202 @@ lb = """
 (root / 'leaderboard').mkdir(exist_ok=True)
 (root / 'leaderboard' / 'index.html').write_text(page('/leaderboard/', 'Leaderboard · Preflop IQ',
   'Daily and weekly leaderboards for the Preflop IQ daily challenge.', lb, PLAYER + ['/daily-core.js', '/leaderboard.js', '/leaderboard-page.js']))
-print('ok')
+
+# =====================================================================
+# Range chart library: /ranges/, /ranges/<format>/, /ranges/<format>/<spot>/
+# Built from tools/range-data.js so every page matches the trainer exactly.
+# =====================================================================
+import json, subprocess, shutil, html as _html
+data = json.loads(subprocess.run(['node', str(here / 'range-data.js')], capture_output=True, text=True, check=True).stdout)
+FORMATS = data['formats']
+esc = _html.escape
+ME = ' class="me"'
+CUR = ' aria-current="page"'
+POS = {'UTG': 'UTG', 'UTG+1': 'UTG+1', 'UTG+2': 'UTG+2', 'LJ': 'Lojack', 'HJ': 'Hijack', 'CO': 'Cutoff', 'BTN': 'Button', 'SB': 'Small Blind', 'BB': 'Big Blind'}
+CLS = {'r': 'raise', 'l': 'limp', 'c': 'call', 'f': ''}
+COLOR = {'raise': 'var(--raise)', '3bet': 'var(--raise)', 'limp': 'var(--call)', 'call': 'var(--call)', 'fold': 'var(--fold-bg)'}
+RK = 'AKQJT98765432'
+GRID_HANDS = [(RK[a] + RK[a]) if a == b else (RK[a] + RK[b] + 's') if a < b else (RK[b] + RK[a] + 'o') for a in range(13) for b in range(13)]
+# engine order is the same chart order (row = first card, suited above the diagonal)
+
+def table_words(f):
+    return 'heads-up' if f['n'] == 2 else f"{f['n']}-handed"
+
+def a_table(f):
+    t = table_words(f)
+    return ('an ' if t[0] == '8' else 'a ') + t
+
+def spot_title(sp, f):
+    h = POS[sp['hero']]
+    if sp['type'] == 'rfi':
+        return f"{h} {'Shove' if f['push'] else 'Open'} Range" + (' (Heads-Up)' if f['n'] == 2 else '')
+    o = POS[sp['opener']]
+    return f"{h} vs {o} {'Shove' if f['push'] else 'Open'}"
+
+def pct(sp, a):
+    for x in sp['actions']:
+        if x['a'] == a: return x
+    return None
+
+def summary(sp, f):
+    t = table_words(f); h = POS[sp['hero']]
+    fold = pct(sp, 'fold'); fp = fold['pct'] if fold else 0
+    if sp['type'] == 'rfi':
+        r = pct(sp, 'raise'); l = pct(sp, 'limp')
+        where = f"At {a_table(f)} table with {f['d']}bb stacks and a 1bb big-blind ante, when it folds to the {h}"
+        if f['push']:
+            return f"{where}, the {h} shoves {r['pct']}% of hands ({r['combos']:,} of 1,326 combos) all-in and folds the rest."
+        if l:
+            return f"{where}, it raises {r['pct']}% of hands to {sp['size']}bb, limps {l['pct']}% and folds {fp}%."
+        return f"{where}, the {h} opens {r['pct']}% of hands ({r['combos']:,} of 1,326 combos) to {sp['size']}bb and folds the rest."
+    o = POS[sp['opener']]
+    c = pct(sp, 'call'); r = pct(sp, '3bet')
+    if f['push']:
+        return f"At {a_table(f)} table with {f['d']}bb stacks, facing an all-in shove from the {o}, the {h} calls {c['pct'] if c else 0}% of hands and folds the rest. Calling costs {sp['call']}bb to win {sp['pot']}bb."
+    parts = []
+    if r: parts.append(f"3-bets {r['pct']}%" + (' all-in' if sp['threeTo'] == f['d'] else f" to {sp['threeTo']}bb"))
+    if c: parts.append(f"calls {c['pct']}%")
+    parts.append(f"folds {fp}%")
+    return f"At {a_table(f)} table with {f['d']}bb stacks, facing a {sp['open']}bb open from the {o}, the {h} " + ', '.join(parts[:-1]) + (' and ' if len(parts) > 1 else '') + parts[-1] + '.'
+
+def grid_html(sp):
+    cells = ''.join(f'<div class="cell {CLS[c]}">{k}</div>' for k, c in zip(GRID_HANDS, sp['grid']))
+    leg = ''.join(f'<span><i style="background:{COLOR[x["a"]]}"></i>{esc(x["label"])} {x["pct"]}%</span>' for x in sp['actions'])
+    return f'<div class="gridwrap"><div class="grid rgrid" role="img" aria-label="Range chart for {esc(sp["name"])}">{cells}</div></div><div class="legend">{leg}</div>'
+
+def spot_url(f, sp): return f"/ranges/{f['slug']}/{sp['slug']}/"
+def fmt_url(f): return f"/ranges/{f['slug']}/"
+def crumbs(items):
+    vis = ' <span aria-hidden="true">›</span> '.join(f'<a href="{u}">{esc(t)}</a>' if u else f'<span aria-current="page">{esc(t)}</span>' for t, u in items)
+    ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i + 1, "name": t, **({"item": SITE + u} if u else {})} for i, (t, u) in enumerate(items)]}
+    return f'<nav class="crumbs" aria-label="Breadcrumb">{vis}</nav>\n<script type="application/ld+json">{json.dumps(ld)}</script>'
+
+def find(n, d):
+    return next(x for x in FORMATS if x['n'] == n and x['d'] == d)
+
+EDGE_LABEL = {'raise': ('Weakest opens', 'Weakest shoves'), '3bet': ('Weakest 3-bets', 'Weakest 3-bets'), 'limp': ('Weakest limps', 'Weakest limps'),
+              'call': ('Weakest calls', 'Weakest calls'), 'fold': ('Strongest folds', 'Strongest folds')}
+
+rroot = root / 'ranges'
+if rroot.exists(): shutil.rmtree(rroot)
+count = 0
+for f in FORMATS:
+    fdir = rroot / f['slug']
+    for sp in f['spots']:
+        title = spot_title(sp, f)
+        summ = summary(sp, f)
+        text_rows = ''.join(f'<div class="rtext"><span class="tag {"t3bet" if x["a"] in ("raise","3bet") else x["a"]}">{esc(x["label"])}</span><code>{esc(x["notation"])}</code></div>' for x in sp['actions'] if x['a'] != 'fold')
+        edges = ''.join(f'<div><h3>{EDGE_LABEL[a][1 if f["push"] else 0]}</h3><p class="hands">{", ".join(hs)}</p></div>' for a, hs in sp['edge'].items() if hs)
+        # same spot at other depths / table sizes
+        depths = []
+        for d2 in [100, 60, 40, 25, 15, 10]:
+            f2 = find(f['n'], d2); s2 = next((x for x in f2['spots'] if x['id'] == sp['id']), None)
+            if s2:
+                main = s2['actions'][0]
+                depths.append((d2, f2, s2, main))
+        sizes = []
+        for n2 in [2, 3, 4, 5, 6, 7, 8, 9]:
+            f2 = find(n2, f['d']); s2 = next((x for x in f2['spots'] if x['id'] == sp['id']), None)
+            if s2: sizes.append((n2, f2, s2, s2['actions'][0]))
+        dep_rows = ''.join(f'<tr{ME if d2 == f["d"] else ""}><td><a href="{spot_url(f2, s2)}">{d2}bb</a></td><td>{esc(m["label"])} {m["pct"]}%</td></tr>' for d2, f2, s2, m in depths)
+        size_rows = ''.join(f'<tr{ME if n2 == f["n"] else ""}><td><a href="{spot_url(f2, s2)}">{"Heads-up" if n2 == 2 else str(n2) + "-max"}</a></td><td>{esc(m["label"])} {m["pct"]}%</td></tr>' for n2, f2, s2, m in sizes)
+        others = ''.join(f'<a class="chip" href="{spot_url(f, x)}"{CUR if x is sp else ""}>{esc(spot_title(x, f))}</a>' for x in f['spots'])
+        source = ('This is a <b>solved</b> range: a chip-EV Nash equilibrium for shove-or-fold play with a 1bb big-blind ante, where no player can gain by shoving or calling differently.'
+                  if f['push'] else 'This is a <b>modeled</b> range: hands ranked by all-in equity, weighted toward suited, connected and paired hands at deeper stacks, and sized to typical tournament frequencies. Borderline hands can differ from a full solver.')
+        body = f"""
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Range chart · {esc(f['label'])}</span>
+    <h1>{esc(title)}</h1>
+    <p class="lede">{esc(summ)}</p>
+  </div>
+  {crumbs([('Ranges', '/ranges/'), (f['label'], fmt_url(f)), (title, None)])}
+  <div class="rmain">
+    <section class="chartcard" aria-labelledby="h-chart"><h2 id="h-chart">The chart</h2>{grid_html(sp)}</section>
+    <section class="pcard" aria-labelledby="h-text"><h2 id="h-text">The range in text</h2>{text_rows}
+      <p class="hint">Hands not listed fold. Pairs like 33+ mean 33 and everything above; A2s+ means A2s through AKs.</p>
+      <div class="rowbtns"><a class="btn" href="/?drill={f['n']}-{f['d']}-{sp['id']}">Drill this spot</a><a class="btn ghostbtn" href="/charts/?fmt={f['n']}-{f['d']}&amp;spot={sp['id']}">Explain any hand</a></div>
+      <p class="hint">The trainer deals you hands from exactly this spot and explains every answer.</p></section>
+  </div>
+  <article class="prose">
+    <h2>The spot</h2>
+    <p>{sp['context']}</p>
+    {f'<h2>Hands on the edge</h2><p>These are the closest decisions in the chart, where most mistakes happen.</p><div class="edges">{edges}</div>' if edges else ''}
+    <h2>Where this range comes from</h2>
+    <p>{source} <a href="/how-it-works/#ranges">How the ranges are built</a>.</p>
+  </article>
+  <div class="pgrid">
+    <section class="pcard"><h2>At other stack depths</h2><div class="tablewrap"><table class="rtable"><tbody>{dep_rows}</tbody></table></div></section>
+    <section class="pcard"><h2>At other table sizes</h2><div class="tablewrap"><table class="rtable"><tbody>{size_rows}</tbody></table></div></section>
+  </div>
+  <section class="pcard"><h2>Other {esc(f['label'])} spots</h2><div class="chiprow">{others}</div></section>
+</div>"""
+        (fdir / sp['slug']).mkdir(parents=True, exist_ok=True)
+        (fdir / sp['slug'] / 'index.html').write_text(page(spot_url(f, sp), f"{title} · {f['label']} Tournament Chart · Preflop IQ", summ, body, [], nav_path='/ranges/'))
+        count += 1
+    # format page
+    def rows(t):
+        out = ''
+        for sp in [x for x in f['spots'] if x['type'] == t]:
+            parts = ', '.join(f'{esc(x["label"])} {x["pct"]}%' for x in sp['actions'] if x['a'] != 'fold')
+            out += f'<li><a href="{spot_url(f, sp)}"><b>{esc(spot_title(sp, f))}</b><span>{parts}</span></a></li>'
+        return out
+    near = ''.join(f'<a class="chip" href="{fmt_url(find(f["n"], d2))}"{CUR if d2 == f["d"] else ""}>{d2}bb</a>' for d2 in [100, 60, 40, 25, 15, 10])
+    nears = ''.join(f'<a class="chip" href="{fmt_url(find(n2, f["d"]))}"{CUR if n2 == f["n"] else ""}>{"Heads-up" if n2 == 2 else str(n2) + "-max"}</a>' for n2 in [2, 3, 4, 5, 6, 7, 8, 9])
+    fdesc = (f"Solved push/fold charts for {table_words(f)} tournaments at {f['d']}bb: shoving ranges from every seat and calling ranges against every shove."
+             if f['push'] else f"Preflop charts for {table_words(f)} tournaments at {f['d']}bb with a 1bb big-blind ante: opening ranges from every seat and how to defend against opens.")
+    fbody = f"""
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Range charts</span>
+    <h1>{esc(f['label'])} {'Push/Fold Charts' if f['push'] else 'Preflop Ranges'}</h1>
+    <p class="lede">{esc(fdesc)}</p>
+  </div>
+  {crumbs([('Ranges', '/ranges/'), (f['label'], None)])}
+  <div class="pgrid">
+    <section class="pcard"><h2>{'Shoving' if f['push'] else 'Opening'}</h2><ul class="spotlist">{rows('rfi')}</ul></section>
+    <section class="pcard"><h2>{'Facing a shove' if f['push'] else 'Facing a raise'}</h2><ul class="spotlist">{rows('vs')}</ul></section>
+  </div>
+  <section class="pcard"><h2>Other stack depths</h2><div class="chiprow">{near}</div><h2 class="mt">Other table sizes</h2><div class="chiprow">{nears}</div></section>
+  <div class="rowbtns"><a class="btn" href="/?fmt={f['n']}-{f['d']}">Train {esc(f['label'])}</a></div>
+</div>"""
+    fdir.mkdir(parents=True, exist_ok=True)
+    (fdir / 'index.html').write_text(page(fmt_url(f), f"{f['label']} {'Push/Fold Charts' if f['push'] else 'Preflop Ranges'} · Preflop IQ", fdesc, fbody, [], nav_path='/ranges/'))
+
+# hub
+def cell(n, d):
+    f = find(n, d); return f'<td><a class="mcell {"played" if f["push"] else ""}" href="{fmt_url(f)}">{d}bb</a></td>'
+matrix = ''.join(f'<tr><th>{"Heads-up" if n == 2 else str(n) + "-max"}</th>' + ''.join(cell(n, d) for d in [100, 60, 40, 25, 15, 10]) + '</tr>' for n in [2, 3, 4, 5, 6, 7, 8, 9])
+pop = [(8, 100, 'rfi-UTG'), (8, 100, 'rfi-BTN'), (8, 100, 'rfi-SB'), (8, 100, 'vs-BB-BTN'), (6, 100, 'rfi-CO'), (9, 100, 'rfi-UTG'),
+       (9, 15, 'rfi-SB'), (9, 10, 'rfi-BTN'), (8, 10, 'vs-BB-SB'), (6, 25, 'rfi-BTN'), (2, 100, 'rfi-BTN'), (2, 10, 'rfi-BTN')]
+popular = ''
+for n, d, sid in pop:
+    f = find(n, d); sp = next(x for x in f['spots'] if x['id'] == sid)
+    popular += f'<li><a href="{spot_url(f, sp)}"><b>{esc(spot_title(sp, f))}</b><span>{esc(f["label"])}</span></a></li>'
+hub = f"""
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Range library</span>
+    <h1>Tournament preflop range charts</h1>
+    <p class="lede">Free charts for every seat, heads-up to 9-handed, from 100bb down to a 10bb shove. {count} charts in all, each with the range in text, the closest decisions and a button to drill it.</p>
+  </div>
+  <div class="pgrid">
+    <section class="pcard"><h2>Popular charts</h2><ul class="spotlist">{popular}</ul></section>
+    <section class="pcard"><h2>Push/fold charts</h2><p>At 10bb and 15bb the only moves are shove or fold, so these charts are solved exactly: a Nash equilibrium for every seat and every call.</p>
+      <div class="chiprow">{''.join(f'<a class="chip" href="{fmt_url(find(n, d))}">{"Heads-up" if n == 2 else str(n) + "-max"} {d}bb</a>' for d in [15, 10] for n in [9, 8, 6, 2])}</div>
+      <p class="hint">Want to explain any single hand? The <a href="/charts/">interactive chart explorer</a> does that.</p></section>
+  </div>
+  <section class="pcard"><h2>Every format</h2><p class="hint">Pick a table size and stack depth.</p><div class="tablewrap"><table class="mastery">{matrix}</table></div></section>
+</div>"""
+(rroot).mkdir(exist_ok=True)
+(rroot / 'index.html').write_text(page('/ranges/', 'Tournament Preflop Range Charts · Preflop IQ',
+  f'Free tournament preflop range charts for every seat, heads-up to 9-handed, 100bb to 10bb. {count} charts including solved push/fold ranges.', hub, []))
+
+# sitemap and robots
+urls = sorted(set(SITEMAP))
+prio = lambda u: '1.0' if u == '/' else '0.8' if u.count('/') <= 2 else '0.6'
+(root / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    ''.join(f'  <url><loc>{SITE}{u}</loc><priority>{prio(u)}</priority></url>\n' for u in urls if u not in ('/account/',)) + '</urlset>\n')
+(root / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /api/\n\nSitemap: {SITE}/sitemap.xml\n')
+print(f'ok · {count} range pages · {len(urls)} URLs in sitemap')

@@ -1,6 +1,13 @@
 /* Preflop IQ range charts page: browse any spot's chart and inspect individual hands. */
 const $=id=>document.getElementById(id);
 let spotId=store.get('pic-chart-spot','rfi-UTG');
+// Links from the range library open a specific chart: /charts/?fmt=8-100&spot=vs-BB-BTN
+(function(){
+  const q=new URLSearchParams(location.search),f=(q.get('fmt')||'').match(/^(\d)-(\d+)$/);
+  if(f&&TABLES[+f[1]]&&DEPTHS.includes(+f[2])){N=+f[1];D=+f[2];store.set('pft-n',N);store.set('pft-d',D);}
+  if(q.get('spot')){spotId=q.get('spot');store.set('pic-chart-spot',spotId);}
+  if(f||q.get('spot'))history.replaceState(null,'',location.pathname);
+})();
 let selected=null;
 
 // Free users can study 8-handed 100bb; every other format is Pro.
