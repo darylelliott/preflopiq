@@ -107,3 +107,10 @@ alter table public.profiles add column if not exists email_prefs jsonb not null 
 alter table public.profiles add column if not exists last_streak_email date;
 alter table public.profiles add column if not exists last_weekly_email date;
 grant update (timezone, email_prefs) on public.profiles to authenticated;
+
+-- ---------- Table access ----------
+-- Newer Supabase projects may not grant the API roles access to new tables automatically.
+-- Row-level security above still decides which rows each player can see.
+grant usage on schema public to anon, authenticated, service_role;
+grant select on public.profiles, public.subscriptions to authenticated;
+grant all on public.profiles, public.subscriptions, public.daily_scores, public.clubs, public.club_members to service_role;

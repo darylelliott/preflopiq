@@ -4,7 +4,8 @@
    Accounts (sign-in, synced progress, leaderboards, clubs, emails) work as soon as both are set.
    The 25-hand paywall and Pro plans only switch on when `payments` is true, after Stripe is set up. */
 window.PIQ_CONFIG = {
-  supabaseUrl: '',       // e.g. 'https://abcdefghijkl.supabase.co'
-  supabaseAnonKey: '',   // the "anon" / "publishable" key
+  supabaseUrl: 'https://pupddxyrckkyrorkmqld.supabase.co',
+  // the legacy "anon" key (public; row-level security decides what it can read)
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1cGRkeHlyY2treXJvcmttcWxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MTY5OTYsImV4cCI6MjEwNjI5Mjk5Nn0.ogErRrxc8AN_YWXdnW-whJNDGEj24bjtk9zY-_fZbKs',
   payments: false        // true once Stripe and the Cloudflare secrets are in place (SETUP.md step 2-3)
 };
