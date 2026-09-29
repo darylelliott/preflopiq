@@ -1,11 +1,11 @@
 // POST /api/checkout  { plan: "monthly" | "annual" }  ->  { url }  (Stripe Checkout page)
-import { json, handle, requireEnv, getUser, getSubscriptionRow, upsertSubscription, stripe, HttpError, readJson } from '../../lib/server.js';
+import { json, handle, requireEnv, getUser, getSubscriptionRow, upsertSubscription, stripe, HttpError, readJson, priceIds } from '../../lib/server.js';
 
 export const onRequestPost = handle(async ({ request, env }) => {
-  requireEnv(env, ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_MONTHLY', 'STRIPE_PRICE_ANNUAL', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
+  requireEnv(env, ['STRIPE_SECRET_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
   const user = await getUser(request, env);
   const { plan } = await readJson(request);
-  const price = plan === 'annual' ? env.STRIPE_PRICE_ANNUAL : plan === 'monthly' ? env.STRIPE_PRICE_MONTHLY : null;
+  const price = plan === 'annual' ? priceIds(env).annual : plan === 'monthly' ? priceIds(env).monthly : null;
   if (!price) throw new HttpError(400, 'Choose monthly or annual.');
 
   const existing = await getSubscriptionRow(env, user.id);

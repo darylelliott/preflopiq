@@ -44,8 +44,7 @@ function render(){
     if(paid){
       plan=`<div class="planstatus pro"><span class="probadge">Pro</span>
         <p>${sub.cancel_at_period_end?`Your Pro plan ends on <b>${fmtDate(sub.current_period_end)}</b>. You can renew it any time before then.`:sub.current_period_end?`Renews on <b>${fmtDate(sub.current_period_end)}</b>.`:'Active.'}</p>
-        <button class="btn" id="b-portal" type="button">Manage billing</button>
-        <p class="hint">Change plan, update your card, download invoices or cancel.</p></div>`;
+        </div>`;
     }else if(st.comp){
       plan=`<div class="planstatus pro"><span class="probadge">Pro</span><p>Complimentary Pro: everything is unlocked, with no billing.</p></div>`;
     }else if(!PIQ.payments){
@@ -60,7 +59,6 @@ function render(){
       const lapsed=sub&&['canceled','past_due','unpaid','incomplete_expired'].includes(sub.status);
       plan=`<div class="planstatus"><span class="freebadge">Free</span>
         <p>${lapsed?`Your Pro plan is ${sub.status==='past_due'?'past due. Update your card to keep it':'no longer active'}.`:`${st.trialEnds?`Your free Pro trial ended on ${fmtDate(st.trialEnds)}. `:''}You've used <b>${Math.min(used,PIQ.FREE_HANDS)} of ${PIQ.FREE_HANDS}</b> free hands.`}</p>
-        ${lapsed?'<button class="btn" id="b-portal" type="button">Manage billing</button>':''}
         <h3>Upgrade to Pro</h3>
         <p>Unlimited hands at every table size and stack depth, 3-bet pots and squeezes, bubble and final-table ranges, and the full mistake review.</p>
         ${plansHTML()}</div>`;
@@ -75,7 +73,7 @@ function render(){
       ${noticeHTML()}
       ${gameHTML()}
       <div class="pgrid acctgrid">
-        <section class="pcard"><h2>Plan</h2>${plan}</section>
+        <section class="pcard"><h2>Plan</h2>${plan}${billingHTML(sub)}</section>
         <section class="pcard">${detailsHTML(pr)}</section>
         <section class="pcard">${emailPrefsHTML()}</section>
         <section class="pcard">${securityHTML()}</section>
@@ -112,6 +110,16 @@ function render(){
     ${view==='signin'?'<button class="linkbtn" id="b-forgot" type="button">Forgot your password?</button>':''}`;
 }
 
+// Billing: Stripe's customer portal for invoices, card, plan changes and cancellation.
+function billingHTML(sub){
+  if(!PIQ.payments)return '';
+  const has=sub&&sub.stripe_customer_id;
+  return `<div class="billing"><h3>Billing</h3>
+    ${has?`<p>Download invoices and receipts, update your card, switch between monthly and yearly, or cancel.</p>
+      <button class="btn" id="b-portal" type="button">Manage billing</button>`
+    :'<p class="hint">No billing yet. When you choose a plan, your invoices, card and cancellation are managed here.</p>'}
+    <p class="hint">Payments are handled by Stripe. Card details never reach Preflop IQ.</p></div>`;
+}
 function showDash(on){$('acctdash').hidden=!on;$('acctwrap').hidden=on;}
 // A summary of the player's game, from the same stats the trainer keeps (synced with the account).
 let gstats=PL.load();
@@ -231,7 +239,7 @@ document.addEventListener('click',async e=>{
   else if(t.id==='b-signout'){await PIQ.signOut();notice=null;view='signin';render();}
   else if(t.id==='b-signout-all'){await PIQ.client.auth.signOut({scope:'global'});await PIQ.signOut();notice=null;view='signin';setNotice('Signed out on every device.');}
   else if(t.id==='b-retry'){await PIQ.refresh();render();}
-  else if(t.id==='b-portal'){t.disabled=true;try{await PIQ.portal();}catch(x){setNotice(x.message,'err');}}
+  else if(t.id==='b-portal'){t.disabled=true;try{await PIQ.portal();}catch(x){t.disabled=false;setNotice(x.message,'err');}}
   else if(t.dataset.plan){t.disabled=true;try{await PIQ.checkout(t.dataset.plan);}catch(x){t.disabled=false;setNotice(x.message,'err');}}
 });
 

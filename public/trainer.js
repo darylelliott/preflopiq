@@ -50,6 +50,7 @@ function renderSetup(){
 const MEDAL={gold:'Gold',silver:'Silver',bronze:'Bronze'};
 function renderStats(){
   if(window.PIQ)renderFreeLeft();
+  if(typeof NOTES!=='undefined')NOTES.render();
   const acc=stats.total?Math.round(stats.correct/stats.total*100)+'%':'—';
   const st=PL.streak(stats),m=ACH.summary(stats),r=PL.rank(stats);
   renderIQ();

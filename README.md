@@ -28,6 +28,7 @@ The site is plain static HTML, CSS and JavaScript in `public/`, with no build st
 | `workers/reminders/` | Hourly Cloudflare Worker that sends streak reminders and weekly recaps (see SETUP.md) |
 | `public/review/` + `review.js` | Mistake review: bb lost, costliest spots, every miss with its chart (Pro keeps 200) |
 | `public/pro-data.js` | Generated Pro data: ICM solutions, exact mistake costs, 25bb 3-bet-shove calls |
+| `public/notify.js` | Notifications bell in the top bar (every page): achievements, rank-ups, daily, streak, review, trial |
 | `public/player.js` | Shared stats, Preflop IQ, day streak, ranks, mastery, leaks and settings |
 | `public/table.js` | Shared felt, cards, prompt and explanation rendering |
 | `public/daily-core.js` | Deterministic daily hand generator and scorer (also runs on the server) |

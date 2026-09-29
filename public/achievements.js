@@ -123,6 +123,7 @@
   }
   // Returning players can unlock several at once; show two, then roll the rest into one card.
   function celebrate(list){
+    if(typeof NOTES!=='undefined')NOTES.add(list);   // also log them under the bell
     if(list.length>3){
       list.slice(0,2).forEach(x=>queue.push(x));
       const rest=list.length-2;

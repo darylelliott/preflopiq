@@ -29,6 +29,7 @@
       <a href="/pricing/">Pricing</a>
       <a href="/about/">About</a>
     </nav>
+    <div class="notes"><button class="bell" id="bell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notepanel" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/></svg><span class="bellcount" hidden></span></button><div class="notepanel" id="notepanel" role="region" aria-label="Notifications" hidden></div></div>
     <a class="acctlink" id="acct" href="/account/" hidden>Sign in</a>
   </div>
 </header>
@@ -177,5 +178,6 @@
 <script src="/vendor/supabase-2.117.2.js"></script>
 <script src="/config.js"></script>
 <script src="/auth.js"></script>
+<script src="/notify.js"></script>
 </body>
 </html>

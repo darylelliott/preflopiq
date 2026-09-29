@@ -768,3 +768,30 @@ details.danger summary{cursor:pointer;color:var(--bad);font-weight:600}
 details.danger p{margin:8px 0}
 .dangerbtn{background:var(--bad)!important;color:#fff!important}
 .acctstats .rtile>b{font-size:1.55rem;overflow-wrap:anywhere}
+
+/* ---------- notifications bell ---------- */
+.notes{position:relative;margin-left:8px}
+.bell{position:relative;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:1px solid rgba(214,169,62,.55);background:rgba(0,0,0,.18);color:var(--cream);cursor:pointer}
+.bell:hover{border-color:var(--brass)}
+.bell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.bellcount{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--raise);color:#fff;font:600 .7rem/18px var(--f-mono);text-align:center;box-shadow:0 0 0 2px var(--walnut)}
+.notepanel{position:absolute;right:0;top:calc(100% + 10px);width:min(360px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.28);z-index:60;text-align:left}
+.notehead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.notehead b{font-family:var(--f-display);font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
+.notepanel ul{list-style:none;margin:0;padding:0}
+.notepanel li a{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:10px 14px;text-decoration:none;color:inherit;border-bottom:1px solid var(--line)}
+.notepanel li a:hover{background:var(--surface-2)}
+.notepanel li.unread a{background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
+.noteicon{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:.95rem}
+.noteicon.ach,.noteicon.rank,.noteicon.trial{background:var(--gold);color:var(--gold-ink)}
+.noteicon.streak,.noteicon.daily{color:var(--raise)}
+.notetext{display:flex;flex-direction:column;gap:2px;min-width:0}
+.notetext b{font-size:.92rem}
+.notetext small{font-size:.8rem;color:var(--muted)}
+.notetext .noteago{font-size:.72rem}
+.notepanel .hint{padding:14px;margin:0}
+.notefoot{display:block;padding:10px 14px;font-size:.85rem;color:var(--call)}
+@media (max-width:560px){.notes{order:1;margin-left:auto}.acctlink{margin-left:8px}.notepanel{position:fixed;left:12px;right:12px;top:58px;width:auto}}
+.billing{border-top:1px solid var(--line);padding-top:12px;margin-top:4px;display:flex;flex-direction:column;gap:8px}
+.billing h3{font-size:1.1rem;margin:0}
+.billing .btn{align-self:flex-start}

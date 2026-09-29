@@ -84,7 +84,7 @@
     const first=!run.done;
     const sc=DAILY.score(day,run.picks);run.marks=sc.marks;run.score=sc.score;
     if(first){
-      run.done=true;persist();
+      run.done=true;persist();if(typeof NOTES!=='undefined')NOTES.render();
       let fresh=[];
       if(isToday){ACH.bump(stats,'daily');if(sc.score===10)ACH.bump(stats,'dailyPerfect');}
       fresh=ACH.sweep(stats);PL.save(stats);

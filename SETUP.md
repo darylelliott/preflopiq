@@ -2,6 +2,8 @@
 
 Until these steps are done the site stays fully free: no sign-in link, no paywall.
 
+**Stripe status:** live product *Preflop IQ Pro* (prod_VLs2CChDfpG7r1) with prices $7.99/month (`price_1ULAHwB7N6kXUKyGGXCcE61p`) and $59/year (`price_1ULAHwB7N6kXUKyGqxU70ej4`), which are built into `lib/server.js` (`STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_ANNUAL` override them). Live webhook `preflopiq-site` → `/api/stripe-webhook` for checkout.session.completed and customer.subscription.created/updated/deleted. The customer portal is configured automatically through the API on first use (`/api/portal`). Still needed in Cloudflare as **Secrets**: `STRIPE_SECRET_KEY` (sk_live_…) and `STRIPE_WEBHOOK_SECRET` (whsec_… from the webhook).
+
 **Status:** Supabase is set up (project `pupddxyrckkyrorkmqld`), `public/config.js` has its URL and anon key, and Cloudflare has `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Accounts, sync, leaderboards and clubs are live. The paywall is off (`payments: false` in `config.js`) until Stripe is done; set it to `true` after steps 2 and 3. "Confirm email" is off in Supabase until custom SMTP is set up (Supabase's built-in sender only reaches your own team), so password-reset emails won't reach players until then. Do everything in **Stripe test mode** first, check it end to end, then repeat the Stripe steps in live mode.
 
 You'll set up three things: **Supabase** (accounts and database), **Stripe** (payments), and **Cloudflare** (the secret keys the payment endpoints use).

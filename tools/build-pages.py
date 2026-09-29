@@ -18,7 +18,7 @@ def page(path, title, desc, body, scripts=(), nav_path=None, private=False):
     cur = ' aria-current="page"'
     nav = '\n'.join('      <a href="%s"%s>%s</a>' % (h, cur if h == active else '', t) for h, t in NAV)
     fnav = ' '.join(f'<a href="{h}">{t}</a>' for h, t in FOOTNAV)
-    js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', *scripts])
+    js = ''.join(f'<script src="{s}"></script>\n' for s in [SUPABASE_JS, '/config.js', '/auth.js', '/notify.js', *scripts])
     # A page's heading block sits on a full-width strip of felt above its content.
     band = ''
     m = re.search(r'\s*<div class="page-head">.*?</div>', body, flags=re.S)
@@ -50,6 +50,7 @@ def page(path, title, desc, body, scripts=(), nav_path=None, private=False):
     <nav class="sitenav" aria-label="Main">
 {nav}
     </nav>
+    <div class="notes"><button class="bell" id="bell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notepanel" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/></svg><span class="bellcount" hidden></span></button><div class="notepanel" id="notepanel" role="region" aria-label="Notifications" hidden></div></div>
     <a class="acctlink" id="acct" href="/account/"{' aria-current="page"' if path == '/account/' else ''} hidden>Sign in</a>
   </div>
 </header>

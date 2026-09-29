@@ -29,7 +29,7 @@
     if(state.user){
       const [p,s]=await Promise.all([
         sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone,full_name,plays,trial_ends,comp').eq('id',state.user.id).maybeSingle(),
-        sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
+        sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end,stripe_customer_id').eq('user_id',state.user.id).maybeSingle()
       ]);
       if(p.error)throw new Error('Could not load your profile: '+p.error.message);
       state.profile=p.data||{hands_played:0,stats:null};
