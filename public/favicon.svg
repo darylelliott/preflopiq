@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="30" fill="#c23a2e"/>
+  <g fill="#fbfbf8">
+    <rect x="28" y="2" width="8" height="10" rx="2"/>
+    <rect x="28" y="52" width="8" height="10" rx="2"/>
+    <rect x="2" y="28" width="10" height="8" rx="2"/>
+    <rect x="52" y="28" width="10" height="8" rx="2"/>
+  </g>
+  <circle cx="32" cy="32" r="17" fill="#fbfbf8"/>
+  <text x="32" y="39" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="19" fill="#15191c">IQ</text>
+</svg>

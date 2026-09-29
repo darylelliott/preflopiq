@@ -22,13 +22,13 @@ for (const S of STACKS) for (let N = 2; N <= 9; N++) {
   NASH[`${N}-${S}`] = o;
   console.log('done');
 }
-const file = path.join(root, 'index.html');
+const file = path.join(root, 'engine.js');
 let html = fs.readFileSync(file, 'utf8');
 const swap = (name, value) => {
   const re = new RegExp(`const ${name}=.*?;\\n`);
-  if (!re.test(html)) throw new Error(`Could not find "const ${name}=" in index.html`);
+  if (!re.test(html)) throw new Error(`Could not find "const ${name}=" in engine.js`);
   html = html.replace(re, `const ${name}=${JSON.stringify(value)};\n`);
 };
 swap('EQA', EQA); swap('NASH', NASH);
 fs.writeFileSync(file, html);
-console.log('Updated index.html');
+console.log('Updated engine.js');

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>How It Works · Preflop IQ</title>
+<meta name="description" content="How Preflop IQ builds its tournament preflop ranges, from Nash-solved push/fold charts to modeled deep-stack ranges, and how your Preflop IQ score is calculated.">
+<meta property="og:title" content="How It Works · Preflop IQ">
+<meta property="og:description" content="How Preflop IQ builds its tournament preflop ranges, from Nash-solved push/fold charts to modeled deep-stack ranges, and how your Preflop IQ score is calculated.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
+    <nav class="sitenav" aria-label="Main">
+      <a href="/">Trainer</a>
+      <a href="/charts/">Charts</a>
+      <a href="/how-it-works/" aria-current="page">How it works</a>
+      <a href="/about/">About</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">How it works</span>
+    <h1>What you're drilling, and where the answers come from</h1>
+    <p class="lede">Preflop IQ tests one decision at a time: the first action you make before the flop in a tournament. Here's the game it models, how every chart is built, and how your score is calculated.</p>
+  </div>
+  <nav class="toc" aria-label="On this page">
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#glossary">Glossary</a>
+  </nav>
+  <article class="prose">
+    <h2 id="format">The format</h2>
+    <p>Every spot is a tournament hand with a <b>1bb big-blind ante</b>, the structure most live and online tournaments now use. The big blind pays the ante for the whole table, so there are 2.5bb in the pot before anyone acts.</p>
+    <ul>
+      <li><b>Table size:</b> 2 to 9 players. Position names follow the usual convention, so a 6-handed table runs UTG, HJ, CO, BTN, SB, BB.</li>
+      <li><b>Stack depth:</b> 100, 60, 40, 25, 15 or 10 big blinds, with everyone at the table equally deep.</li>
+      <li><b>Chip EV:</b> the ranges maximize chips won. They don't account for payout pressure (ICM), so near the bubble or at a final table the right play is often tighter than these charts.</li>
+    </ul>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Stack</th><th>Open size</th><th>Small blind open</th><th>3-bet size</th></tr></thead>
+      <tbody>
+        <tr><td>60&ndash;100bb</td><td>2.2bb</td><td>3bb</td><td>~3.2&times; in position, ~4.4&times; out of position</td></tr>
+        <tr><td>40bb</td><td>2.1bb</td><td>2.8bb</td><td>~3.2&times; / ~4.4&times;</td></tr>
+        <tr><td>25bb</td><td>2bb (min-raise)</td><td>2.5bb</td><td>All-in</td></tr>
+        <tr><td>10&ndash;15bb</td><td colspan="3">Shove or fold. Every open is all-in, and players behind can only call or fold.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Heads-up, the button posts the small blind and opens to 2.5bb at deep stacks.</p>
+
+    <h2 id="spots">The spots</h2>
+    <p>You're quizzed on two kinds of decision:</p>
+    <ul>
+      <li><b>Opening:</b> everyone folds to you. You raise or fold (shove or fold at 15bb and below). Every seat from the first to act through the small blind is covered.</li>
+      <li><b>Facing a raise:</b> someone has opened and you decide to fold, call or 3-bet. The spots are the big blind against the first seat, the cutoff against the first seat, the button against the cutoff, and both blinds against a button open. Spots are dropped automatically when the table is too short to have them.</li>
+    </ul>
+
+    <h2 id="ranges">How ranges are built</h2>
+    <p>Each chart is labeled on screen as either a <b>Nash solution</b> or <b>modeled</b>, because they're made in two different ways.</p>
+    <h3>10bb and 15bb: solved</h3>
+    <p>At these depths the only options are shove, call or fold, which is small enough to solve exactly. The solve works in two stages:</p>
+    <ol>
+      <li><b>An equity table.</b> Every one of the 14,365 matchups between the 169 starting hands was simulated over 20,000 random boards, accounting for card removal. Known results check out to within about half a percent: AA against KK comes out at 82.3%, against a true value of 81.9%.</li>
+      <li><b>A Nash equilibrium.</b> A solver plays every seat against every other seat, repeatedly finding the best response and averaging it in, until nobody can gain by shoving or calling differently. It includes the big blind paying the ante out of its own stack.</li>
+    </ol>
+    <p>One simplification: the solve assumes at most one player calls a shove, so it ignores three-way all-ins. Commercial tools model those, but they rarely change a range. About 3% of hands end up mixing between actions; the trainer assigns each hand whichever action it takes most often.</p>
+    <h3>25bb and deeper: modeled</h3>
+    <p>With raises, 3-bets and play after the flop in the picture, a true solve needs a full preflop solver running for hours. Instead, these charts rank all 169 hands by all-in equity, give extra weight to suited, connected and paired hands as stacks get deeper (they win bigger pots when they hit), and take the top slice of that ranking at typical tournament frequencies for each seat. The shapes are close to published solver charts, but borderline hands can differ.</p>
+    <div class="callout">If a modeled chart disagrees with a solver you trust on a borderline hand, trust the solver. The solved 10bb and 15bb charts are exact within the assumptions above.</div>
+
+    <h2 id="score">Your Preflop IQ</h2>
+    <p>Your score reflects your last 100 decisions, so it tracks how you're playing now rather than how you played last month.</p>
+    <ul>
+      <li><b>Borderline hands count 1.5&times;.</b> These are hands next to the edge of a range, where most real mistakes happen.</li>
+      <li><b>Partial credit:</b> calling when the chart says 3-bet, or 3-betting when it says call, earns 40%. Folding a hand you should play, or playing one you should fold, earns nothing.</li>
+      <li><b>Scale:</b> weighted accuracy maps onto 25&ndash;145. 50% accuracy is 85, 75% is 115, 90% is 133, and a perfect run is 145.</li>
+      <li>The score is marked provisional until you've played 20 hands.</li>
+    </ul>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Tier</th><th>Preflop IQ</th></tr></thead>
+      <tbody><tr><td>Solver-brained</td><td>135+</td></tr><tr><td>Shark</td><td>120&ndash;134</td></tr><tr><td>Regular</td><td>105&ndash;119</td></tr><tr><td>Recreational</td><td>90&ndash;104</td></tr><tr><td>Fish</td><td>under 90</td></tr></tbody>
+    </table></div>
+
+    <h2 id="using">Using the trainer</h2>
+    <ul>
+      <li><b>Pick your game</b> with the Players and Stack controls. Each combination has its own charts and its own accuracy table.</li>
+      <li><b>Focus your practice</b> with <i>Opening</i> or <i>Facing a raise</i>, and turn on <i>Borderline hands only</i> to skip the obvious folds.</li>
+      <li><b>Keyboard:</b> <code>F</code> fold, <code>C</code> call, <code>R</code> raise or 3-bet, <code>Space</code> next hand.</li>
+      <li><b>Study first</b> on the <a href="/charts/">Charts</a> page, which shows every spot's full range and explains any hand you tap.</li>
+      <li>Progress is saved in your browser. Clearing this site's data, or switching browsers or devices, starts you fresh.</li>
+    </ul>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="gloss">
+      <dt>bb</dt><dd>Big blinds. Stacks and bet sizes are measured in big blinds so the charts work at any blind level.</dd>
+      <dt>UTG</dt><dd>Under the gun: first to act before the flop. UTG+1 and UTG+2 act next at full tables.</dd>
+      <dt>LJ, HJ</dt><dd>Lojack and hijack, the middle seats. The hijack is two seats right of the button.</dd>
+      <dt>CO</dt><dd>Cutoff, the seat right of the button.</dd>
+      <dt>BTN</dt><dd>The button (dealer). Acts last on every street after the flop, which is why it can play the most hands.</dd>
+      <dt>SB, BB</dt><dd>Small blind and big blind. They post forced bets and act last before the flop but first after it.</dd>
+      <dt>BB ante</dt><dd>An ante paid entirely by the big blind on behalf of the table, here 1bb.</dd>
+      <dt>Open</dt><dd>The first raise into an unraised pot.</dd>
+      <dt>3-bet</dt><dd>A re-raise over an open.</dd>
+      <dt>Shove</dt><dd>Going all-in.</dd>
+      <dt>Squeeze</dt><dd>A 3-bet after someone has opened and someone else has called.</dd>
+      <dt>Suited / offsuit</dt><dd>Two cards of the same suit (AKs) or different suits (AKo).</dd>
+      <dt>Combos</dt><dd>The card combinations a hand represents: 6 for a pair, 4 for a suited hand, 12 for an offsuit hand. Range percentages are counted in combos out of 1,326.</dd>
+      <dt>Blocker</dt><dd>A card in your hand that makes certain opponent hands less likely. Holding an ace, for example, leaves 3 combos of AA instead of 6, and 12 of AK instead of 16.</dd>
+      <dt>Chip EV</dt><dd>Measuring decisions only by chips won or lost, ignoring tournament payouts.</dd>
+      <dt>ICM</dt><dd>Independent Chip Model: a way of converting chips into prize money. Under ICM, survival matters more, so ranges tighten.</dd>
+      <dt>Nash equilibrium</dt><dd>A set of strategies where no player can do better by changing theirs alone.</dd>
+    </dl>
+    <a class="cta" href="/">Start training</a>
+  </article>
+</div>
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+  </div>
+</footer>
+</body>
+</html>

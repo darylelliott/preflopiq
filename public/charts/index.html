@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Range Charts · Preflop IQ</title>
+<meta name="description" content="Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.">
+<meta property="og:title" content="Range Charts · Preflop IQ">
+<meta property="og:description" content="Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Preflop <span>IQ</span></a>
+    <nav class="sitenav" aria-label="Main">
+      <a href="/">Trainer</a>
+      <a href="/charts/" aria-current="page">Charts</a>
+      <a href="/how-it-works/">How it works</a>
+      <a href="/about/">About</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Range charts</span>
+    <h1>Every spot, every hand</h1>
+    <p class="lede">Browse the full chart for any spot the trainer asks about. Tap a hand to see what to do with it and why.</p>
+  </div>
+  <div class="setup">
+    <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
+    <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+  </div>
+  <div class="spotpick" id="spots"></div>
+  <main class="chartmain">
+    <section class="chartcard" aria-labelledby="chart-title">
+      <div class="blk"><h3 id="chart-title"></h3></div>
+      <div class="gridwrap"><div class="bigrid" id="grid" role="group" aria-label="Range chart"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+    <section class="panel" id="detail" aria-live="polite"></section>
+  </main>
+</div>
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <span>Preflop IQ · Free tournament preflop trainer. Your progress stays in this browser.</span>
+    <nav aria-label="Footer"><a href="/">Trainer</a> <a href="/charts/">Charts</a> <a href="/how-it-works/">How it works</a> <a href="/about/">About</a></nav>
+  </div>
+</footer>
+<script src="/engine.js"></script>
+<script src="/charts.js"></script>
+</body>
+</html>
