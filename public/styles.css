@@ -696,8 +696,8 @@ body>.wrap{width:100%}
 .bet.called{background:var(--call);color:var(--call-ink);border-color:rgba(255,255,255,.6)}
 .act[data-a="4bet"]{background:var(--raise);color:var(--raise-ink)}
 .act[data-a="check"]{background:var(--call);color:var(--call-ink)}
-.tag.check{background:var(--call);color:var(--call-ink)}
-.cell.check,.bigrid button.check,.rgrid .check{background:var(--call);color:var(--call-ink)}
+.tag.chk{background:var(--call);color:var(--call-ink)}
+.cell.chk,.bigrid button.chk,.rgrid .chk{background:var(--call);color:var(--call-ink)}
 .cell.na,.bigrid button.na{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--line) 4px 6px);color:var(--muted);opacity:.6}
 .legend i.na-sw{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--muted) 3px 4px);border:1px solid var(--line)}
 .protag{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:.66rem;line-height:1.35;letter-spacing:.1em;text-transform:uppercase;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);vertical-align:1px;margin-left:4px}
@@ -733,3 +733,17 @@ body>.wrap{width:100%}
 .lockbox.inline{max-width:none;box-shadow:none;margin-top:12px}
 @media (max-width:560px){.missbtn{grid-template-columns:auto minmax(0,1fr) auto}.mpick{display:none}}
 .missbody .gridwrap{max-width:520px}
+
+/* ---------- sign-up details and the 7-day trial ---------- */
+.form select{font:inherit;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.form select:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.form label small{font-weight:400;color:var(--muted)}
+.form .hint{margin:-2px 0 4px}
+.form label.check{font-weight:400}
+.form label.check input{width:auto}
+.trialpitch{display:flex;flex-direction:column;gap:2px;border:1px solid var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--surface));border-radius:10px;padding:10px 12px;margin:10px 0}
+.trialpitch b{font-family:var(--f-display);font-size:1.15rem;letter-spacing:.02em}
+.trialpitch span{font-size:.88rem;color:var(--muted)}
+.freeleft.trial b{color:var(--good)}
+.trialcta{align-self:stretch;justify-content:center;flex-wrap:wrap;text-decoration:none;margin:4px 0}
+.trialcta small{font-weight:400;opacity:.85}

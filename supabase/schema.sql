@@ -43,12 +43,31 @@ revoke update on public.profiles from authenticated;
 grant update (hands_played, stats, updated_at) on public.profiles to authenticated;
 revoke insert, update, delete on public.subscriptions from authenticated, anon;
 
--- Create a profile whenever someone signs up.
+-- Create a profile whenever someone signs up, with the details from the sign-up form
+-- (name, leaderboard name, where they play, email choice) and a 7-day Pro trial.
+-- A leaderboard name that is invalid or taken is dropped rather than failing the sign-up.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  m jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
+  nm text := nullif(left(btrim(coalesce(m->>'full_name', '')), 60), '');
+  dn text := nullif(btrim(coalesce(m->>'display_name', '')), '');
+  pl text := case when m->>'plays' in ('live', 'online', 'home', 'learning') then m->>'plays' end;
+  em boolean := coalesce(m->>'emails', 'true') <> 'false';
 begin
-  insert into public.profiles (id, email) values (new.id, new.email)
-  on conflict (id) do nothing;
+  if dn is not null and (dn !~ '^[A-Za-z0-9 _.\-]{3,20}$'
+      or exists (select 1 from public.profiles where lower(display_name) = lower(dn))) then
+    dn := null;
+  end if;
+  begin
+    insert into public.profiles (id, email, full_name, display_name, plays, email_prefs, trial_ends)
+    values (new.id, new.email, nm, dn, pl, jsonb_build_object('streak', em, 'weekly', em), now() + interval '7 days')
+    on conflict (id) do nothing;
+  exception when unique_violation then
+    insert into public.profiles (id, email, full_name, plays, email_prefs, trial_ends)
+    values (new.id, new.email, nm, pl, jsonb_build_object('streak', em, 'weekly', em), now() + interval '7 days')
+    on conflict (id) do nothing;
+  end;
   return new;
 end;
 $$;
@@ -107,6 +126,18 @@ alter table public.profiles add column if not exists email_prefs jsonb not null 
 alter table public.profiles add column if not exists last_streak_email date;
 alter table public.profiles add column if not exists last_weekly_email date;
 grant update (timezone, email_prefs) on public.profiles to authenticated;
+
+-- ---------- Sign-up details and the 7-day Pro trial ----------
+-- Safe to run again. trial_ends is set at sign-up and can't be changed by the player.
+alter table public.profiles add column if not exists full_name text;
+alter table public.profiles add column if not exists plays text;
+alter table public.profiles add column if not exists trial_ends timestamptz;
+alter table public.profiles drop constraint if exists full_name_len;
+alter table public.profiles add constraint full_name_len check (full_name is null or char_length(full_name) <= 60);
+alter table public.profiles drop constraint if exists plays_values;
+alter table public.profiles add constraint plays_values check (plays is null or plays in ('live', 'online', 'home', 'learning'));
+grant update (full_name, plays) on public.profiles to authenticated;
+update public.profiles set trial_ends = created_at + interval '7 days' where trial_ends is null;
 
 -- ---------- Table access ----------
 -- Newer Supabase projects may not grant the API roles access to new tables automatically.

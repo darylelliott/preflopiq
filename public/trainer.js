@@ -206,9 +206,13 @@ $('hero').addEventListener('click',e=>{
 function renderFreeLeft(){
   let el=$('freeleft');
   if(!el){el=document.createElement('a');el.id='freeleft';el.className='freeleft';el.href='/pricing/';$('stats').after(el);}
-  const left=window.PIQ?PIQ.handsLeft():Infinity;
-  el.hidden=!isFinite(left);
-  if(isFinite(left)) el.innerHTML=left>0?`<b>${left}</b> free hand${left===1?'':'s'} left · <span>Go Pro</span>`:'<b>Free hands used</b> · <span>Go Pro</span>';
+  const left=window.PIQ?PIQ.handsLeft():Infinity,st=window.PIQ&&PIQ.state;
+  // Pro trial: days left. Signed out: the free trial is the offer. Signed in after the trial: Go Pro.
+  if(st&&PIQ.payments&&st.onTrial){const d=PIQ.trialDaysLeft();el.hidden=false;el.href='/pricing/';el.className='freeleft trial';
+    el.innerHTML=`<b>Pro trial</b> · ${d} day${d===1?'':'s'} left · <span>Keep Pro</span>`;return;}
+  el.className='freeleft';el.hidden=!isFinite(left);
+  const trialOffer=st&&!st.user;el.href=trialOffer?'/account/?view=signup&next=trainer':'/pricing/';
+  if(isFinite(left)) el.innerHTML=left>0?`<b>${left}</b> free hand${left===1?'':'s'} left · <span>${trialOffer?'Try Pro free for 7 days':'Go Pro'}</span>`:`<b>Free hands used</b> · <span>${trialOffer?'Try Pro free for 7 days':'Go Pro'}</span>`;
 }
 function paywallEl(){
   let el=$('paywall');if(el)return el;
@@ -217,6 +221,7 @@ function paywallEl(){
     <span class="eyebrow">Preflop IQ Pro</span>
     <h2 id="pw-title">You've played your ${PIQ.FREE_HANDS} free hands</h2>
     <p>Keep your streak going. Pro gives you unlimited hands at every table size and stack depth, 3-bet pots and squeezes, bubble and final-table ranges, and a review of what every mistake cost you. The daily challenge stays free either way.</p>
+    <a class="cta trialcta" id="pw-trial" href="/account/?view=signup&next=trainer">Start a 7-day free trial <small>No card needed</small></a>
     <div class="plans">
       <button class="plan" id="pw-annual" data-plan="annual"><span class="plan-name">Annual</span><span class="plan-price">$59<small>/year</small></span><span class="plan-note">About $4.92 a month · save 38%</span></button>
       <button class="plan" id="pw-monthly" data-plan="monthly"><span class="plan-name">Monthly</span><span class="plan-price">$7.99<small>/month</small></span><span class="plan-note">Cancel anytime</span></button>
@@ -235,6 +240,9 @@ function paywallEl(){
 function showPaywall(){
   const el=paywallEl();stopClock();
   $('pw-signin').hidden=!!PIQ.state.user;
+  // Signed out: the free trial comes first. Signed in: their trial has already been used.
+  $('pw-trial').hidden=!!PIQ.state.user;
+  $('pw-title').textContent=PIQ.state.user&&PIQ.state.trialEnds?'Your 7-day Pro trial has ended':`You've played your ${PIQ.FREE_HANDS} free hands`;
   if(el.hidden){el.hidden=false;$('pw-annual').focus({preventScroll:true});}
 }
 function hidePaywall(){const el=$('paywall');if(el)el.hidden=true;}

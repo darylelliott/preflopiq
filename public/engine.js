@@ -242,8 +242,9 @@ function spotActs(s){
   const order={rfi:['raise','limp','fold'],lp:['raise','check'],v3:['4bet','call','fold']}[s.type]||['3bet','call','fold'];
   return order.filter(a=>a==='fold'||a==='check'||HANDS.some(k=>actionOf(s,k)===a));
 }
-const actCls=a=>a==='3bet'||a==='4bet'?'t3bet':a==='fold'?'':a;
-const tagCls=a=>a==='3bet'||a==='4bet'?'t3bet':a;
+// 'check' maps to 'chk' so it can't collide with the .check checkbox-label style.
+const actCls=a=>a==='3bet'||a==='4bet'?'t3bet':a==='fold'?'':a==='check'?'chk':a;
+const tagCls=a=>a==='3bet'||a==='4bet'?'t3bet':a==='check'?'chk':a;
 const actColor=a=>a==='fold'?'var(--fold-bg)':a==='call'||a==='limp'||a==='check'?'var(--call)':'var(--raise)';
 
 /* ---------- what a mistake costs, in big blinds ---------- */
@@ -329,7 +330,7 @@ function catLine(s,h){
   });
   const anyRest=members.some(m=>actionOf(s,m.k)===dflt);
   if(!parts.length) return `<b>${name}:</b> every one ${dflt==='check'?'checks':'folds'} here.`;
-  return `<b>${name}:</b><br>${parts.join('<br>')}${anyRest?`<br><span class="tag ${dflt}">${s.labels[dflt]}</span>the rest`:''}`;
+  return `<b>${name}:</b><br>${parts.join('<br>')}${anyRest?`<br><span class="tag ${tagCls(dflt)}">${s.labels[dflt]}</span>the rest`:''}`;
 }
 const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 const chartSource=s=>isPush()?(icmOn()?'ICM Nash solution':'Nash solution'):s&&s.exact?'exact pot odds':'modeled';

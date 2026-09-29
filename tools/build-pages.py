@@ -294,7 +294,7 @@ pricing = """
   <div class="page-head">
     <span class="eyebrow">Pricing</span>
     <h1>Start free. Go Pro when it clicks.</h1>
-    <p class="lede">Try 25 hands with no sign-up. Pro unlocks the whole trainer, 3-bet pots, bubble and final-table play, and a review of what every mistake cost you.</p>
+    <p class="lede">Try 25 hands with no sign-up, then create a free account for 7 days of Pro, no card needed. Pro unlocks the whole trainer, 3-bet pots, bubble and final-table play, and a review of what every mistake cost you.</p>
   </div>
   <div class="tiers">
     <section class="tier">
@@ -302,6 +302,7 @@ pricing = """
       <p class="tier-price">$0</p>
       <ul>
         <li>25 trainer hands, no account needed</li>
+        <li><b>7 days of Pro free</b> when you create an account, no card needed</li>
         <li>The range chart library: every opening and calling chart</li>
         <li>The interactive chart explorer at 8-handed 100bb</li>
         <li>A taste of every Pro spot inside your 25 hands</li>

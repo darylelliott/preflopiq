@@ -22,17 +22,21 @@
   }
 
   async function loadAccount(session){
-    state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;
+    state.session=session;state.user=session?.user||null;state.profile=null;state.sub=null;state.isPro=false;state.onTrial=false;state.trialEnds=null;
     if(state.user){
       const [p,s]=await Promise.all([
-        sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone').eq('id',state.user.id).maybeSingle(),
+        sb.from('profiles').select('hands_played,stats,display_name,email_prefs,timezone,full_name,plays,trial_ends').eq('id',state.user.id).maybeSingle(),
         sb.from('subscriptions').select('status,price_id,current_period_end,cancel_at_period_end').eq('user_id',state.user.id).maybeSingle()
       ]);
       state.profile=p.data||{hands_played:0,stats:null};
       state.sub=s.data||null;
       // Reminder emails go out in the player's own evening, so keep their time zone current.
       try{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz&&state.profile.timezone!==tz){state.profile.timezone=tz;sb.from('profiles').update({timezone:tz}).eq('id',state.user.id).then(()=>{});}}catch(e){}
-      state.isPro=!!state.sub&&['active','trialing'].includes(state.sub.status);
+      // Pro is a paid (or Stripe-trialing) subscription, or the 7-day trial every new account gets.
+      const paid=!!state.sub&&['active','trialing'].includes(state.sub.status);
+      state.trialEnds=state.profile.trial_ends?new Date(state.profile.trial_ends):null;
+      state.onTrial=!paid&&!!state.trialEnds&&state.trialEnds>new Date();
+      state.isPro=paid||state.onTrial;
       // Hands played before signing in still count toward the free limit.
       const local=localUsed();
       if(!state.isPro&&local>(state.profile.hands_played||0)){
@@ -98,7 +102,7 @@
     const a=document.getElementById('acct');if(!a)return;
     if(!configured){a.hidden=true;return;}
     a.hidden=false;
-    if(state.user){a.innerHTML=state.isPro?'Account <span class="probadge">Pro</span>':'Account';}
+    if(state.user){a.innerHTML=state.isPro&&payments?`Account <span class="probadge">${state.onTrial?'Trial':'Pro'}</span>`:'Account';}
     else a.textContent='Sign in';
   }
 
@@ -107,6 +111,14 @@
     const {error}=await sb.from('profiles').update({email_prefs:next}).eq('id',state.user.id);
     if(error)throw new Error(error.message);state.profile.email_prefs=next;return next;
   }
-  window.PIQ={configured,payments,ready,state,setEmailPrefs,FREE_HANDS,PRICES,client:sb,
+  // Days left in the sign-up trial (1 on its last day), or 0.
+  function trialDaysLeft(){return state.onTrial?Math.max(1,Math.ceil((state.trialEnds-new Date())/86400000)):0;}
+  // Name, leaderboard name and where they play, from the account page.
+  async function updateProfile(fields){
+    const {error}=await sb.from('profiles').update(fields).eq('id',state.user.id);
+    if(error)throw new Error(/duplicate|unique/i.test(error.message)?'That leaderboard name is taken. Try another.':/display_name_format/i.test(error.message)?'Leaderboard names are 3 to 20 letters, numbers, spaces, dots, dashes or underscores.':error.message);
+    Object.assign(state.profile,fields);emit();
+  }
+  window.PIQ={configured,payments,ready,state,setEmailPrefs,updateProfile,trialDaysLeft,TRIAL_DAYS:7,FREE_HANDS,PRICES,client:sb,
     onChange(f){listeners.push(f);},handsUsed,handsLeft,locked,paywallOn,recordHand,saveStats,checkout,portal,refresh,signOut};
 })();

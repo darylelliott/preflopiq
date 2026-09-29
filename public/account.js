@@ -1,7 +1,8 @@
 /* Preflop IQ account page: sign in, sign up, password reset, plan status and billing. */
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-let view='signin';            // signin | signup | forgot
+let view=params.get('view')==='signup'?'signup':'signin';   // signin | signup | forgot
+const PLAYS={live:'Live tournaments',online:'Online tournaments',home:'Home games',learning:'Just learning'};
 let notice=null;              // {text, kind: 'ok'|'err'}
 let busy=false;
 
@@ -37,7 +38,12 @@ function render(){
   if(st.user){
     const sub=st.sub,pro=st.isPro,used=PIQ.handsUsed();
     let plan;
-    if(!PIQ.payments&&!pro){
+    if(PIQ.payments&&st.onTrial){
+      const d=PIQ.trialDaysLeft();
+      plan=`<div class="planstatus pro"><span class="probadge">Pro trial</span>
+        <p><b>${d} day${d===1?'':'s'} left</b> of your free Pro trial (it ends ${fmtDate(st.trialEnds)}). Everything is unlocked. Pick a plan any time to keep it.</p>
+        ${plansHTML()}</div>`;
+    }else if(!PIQ.payments&&!pro){
       plan=`<div class="planstatus"><span class="freebadge">Free</span>
         <p>Every feature is open while Pro isn’t on sale yet, including 3-bet pots, bubble and final-table ranges, and the full mistake review.</p></div>`;
     }else if(pro){
@@ -48,15 +54,17 @@ function render(){
     }else{
       const lapsed=sub&&['canceled','past_due','unpaid','incomplete_expired'].includes(sub.status);
       plan=`<div class="planstatus"><span class="freebadge">Free</span>
-        <p>${lapsed?`Your Pro plan is ${sub.status==='past_due'?'past due. Update your card to keep it':'no longer active'}.`:`You've used <b>${Math.min(used,PIQ.FREE_HANDS)} of ${PIQ.FREE_HANDS}</b> free hands.`}</p>
+        <p>${lapsed?`Your Pro plan is ${sub.status==='past_due'?'past due. Update your card to keep it':'no longer active'}.`:`${st.trialEnds?`Your free Pro trial ended on ${fmtDate(st.trialEnds)}. `:''}You've used <b>${Math.min(used,PIQ.FREE_HANDS)} of ${PIQ.FREE_HANDS}</b> free hands.`}</p>
         ${lapsed?'<button class="btn" id="b-portal" type="button">Manage billing</button>':''}
         <h3>Upgrade to Pro</h3>
-        <p>Unlimited hands at every table size and stack depth, every range chart, and progress synced across your devices.</p>
+        <p>Unlimited hands at every table size and stack depth, 3-bet pots and squeezes, bubble and final-table ranges, and the full mistake review.</p>
         ${plansHTML()}</div>`;
     }
-    box.innerHTML=`<h2>Your account</h2>${noticeHTML()}
-      <dl class="acctinfo"><dt>Email</dt><dd>${esc(st.user.email)}</dd><dt>Hands played</dt><dd>${(st.profile&&st.profile.stats&&st.profile.stats.total)||0}</dd></dl>
+    const pr=st.profile||{};
+    box.innerHTML=`<h2>${pr.full_name?`Hi, ${esc(pr.full_name.split(' ')[0])}`:'Your account'}</h2>${noticeHTML()}
+      <dl class="acctinfo"><dt>Email</dt><dd>${esc(st.user.email)}</dd><dt>Hands played</dt><dd>${(pr.stats&&pr.stats.total)||0}</dd></dl>
       ${plan}
+      ${detailsHTML(pr)}
       ${emailPrefsHTML()}
       <button class="linkbtn" id="b-signout" type="button">Sign out</button>`;
     return;
@@ -74,16 +82,32 @@ function render(){
       </form><button class="linkbtn" id="b-back" type="button">Back to sign in</button>`;
     return;
   }
-  box.innerHTML=`${tabs}${why}${noticeHTML()}
+  const pitch=view==='signup'?`<div class="trialpitch"><b>${PIQ.payments?'7 days of Pro, free. No card needed.':'Free account'}</b>
+    <span>${PIQ.payments?'Unlimited hands, 3-bet pots, bubble and final-table ranges and your full mistake review. After 7 days you keep your progress and the free plan.':'Sync your progress across devices, join the leaderboards and start a club.'}</span></div>`:'';
+  box.innerHTML=`${tabs}${why}${pitch}${noticeHTML()}
     <form id="f-auth" class="form">
+      ${view==='signup'?`<label for="fullname">Your name</label><input id="fullname" autocomplete="name" maxlength="60" required>
+      <label for="dname">Leaderboard name <small>(optional)</small></label><input id="dname" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{3,20}" title="3 to 20 letters, numbers, spaces, dots, dashes or underscores">
+      <p class="hint">Shown on leaderboards and in clubs instead of your name. You can set it later.</p>
+      <label for="plays">Where do you usually play?</label><select id="plays"><option value="">Choose one</option>${Object.entries(PLAYS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>`:''}
       <label for="email">Email</label><input id="email" type="email" autocomplete="email" required>
       <label for="password">Password</label><input id="password" type="password" autocomplete="${view==='signup'?'new-password':'current-password'}" minlength="${view==='signup'?8:1}" required>
-      ${view==='signup'?'<p class="hint">At least 8 characters.</p>':''}
-      <button class="btn" type="submit">${view==='signup'?'Create account':'Sign in'}</button>
+      ${view==='signup'?`<p class="hint">At least 8 characters.</p>
+      <label class="check" for="emails"><input type="checkbox" id="emails" checked> Email me a streak reminder and a weekly recap (unsubscribe any time)</label>`:''}
+      <button class="btn" type="submit">${view==='signup'?(PIQ.payments?'Start my free trial':'Create account'):'Sign in'}</button>
     </form>
     ${view==='signin'?'<button class="linkbtn" id="b-forgot" type="button">Forgot your password?</button>':''}`;
 }
 
+function detailsHTML(pr){
+  return `<div class="planstatus"><h3>Your details</h3>
+    <form id="f-details" class="form">
+      <label for="d-name">Name</label><input id="d-name" autocomplete="name" maxlength="60" value="${esc(pr.full_name||'')}">
+      <label for="d-dname">Leaderboard name</label><input id="d-dname" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{3,20}" title="3 to 20 letters, numbers, spaces, dots, dashes or underscores" value="${esc(pr.display_name||'')}">
+      <label for="d-plays">Where you usually play</label><select id="d-plays"><option value="">Not set</option>${Object.entries(PLAYS).map(([k,v])=>`<option value="${k}"${pr.plays===k?' selected':''}>${v}</option>`).join('')}</select>
+      <button class="btn ghostbtn" type="submit">Save details</button>
+    </form></div>`;
+}
 function emailPrefsHTML(){
   const p=(PIQ.state.profile&&PIQ.state.profile.email_prefs)||{streak:true,weekly:true};
   return `<div class="planstatus"><h3>Emails</h3>
@@ -112,13 +136,22 @@ document.addEventListener('submit',async e=>{
     if(e.target.id==='f-auth'){
       const email=$('email').value.trim(),password=$('password').value;
       if(view==='signup'){
-        const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:`${origin}/account/${location.search}`}});
-        if(error)throw error;
+        const dname=$('dname').value.trim();
+        const data0={full_name:$('fullname').value.trim(),display_name:dname,plays:$('plays').value,emails:$('emails').checked?'true':'false'};
+        const {data,error}=await sb.auth.signUp({email,password,options:{data:data0,emailRedirectTo:`${origin}/account/${location.search}`}});
+        if(error)throw new Error(/already registered|already exists/i.test(error.message)?'That email already has an account. Sign in instead.':error.message);
         if(!data.session){view='signin';setNotice(`Check ${email} for a confirmation link, then sign in.`);}
+        else{await PIQ.ready;await PIQ.refresh();
+          const got=PIQ.state.profile&&PIQ.state.profile.display_name;
+          setNotice(dname&&!got?`Welcome! “${dname}” was already taken as a leaderboard name, so choose another below.`:PIQ.payments?'Welcome! Your 7-day Pro trial has started.':'Welcome! Your account is ready.',dname&&!got?'err':'ok');}
       }else{
         const {error}=await sb.auth.signInWithPassword({email,password});
         if(error)throw new Error(error.message==='Invalid login credentials'?'That email and password don’t match an account.':error.message);
       }
+    }else if(e.target.id==='f-details'){
+      const dn=$('d-dname').value.trim();
+      await PIQ.updateProfile({full_name:$('d-name').value.trim()||null,display_name:dn||null,plays:$('d-plays').value||null});
+      setNotice('Details saved.');
     }else if(e.target.id==='f-forgot'){
       const email=$('email').value.trim();
       const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:`${origin}/account/`});
