@@ -87,7 +87,7 @@ const PL=(function(){
     if(p.n>=50&&a>=0.9)return 'gold';if(p.n>=25&&a>=0.8)return 'silver';if(p.n>=10&&a>=0.7)return 'bronze';return null;
   }
   // Stats keys: "8-100-rfi-UTG", or "8-10ft-vs-BB-SB" for a spot at a final table (bub = bubble).
-  function parseKey(key){const m=key.match(/^(\d+)-(\d+)(bub|ft)?-(.+)$/);if(!m)return null;return {n:+m[1],d:+m[2],st:m[3]||'cev',id:m[4]};}
+  function parseKey(key){const m=key.match(/^(\d+)-(\d+)(bub|ft)?(tight|loose|aggro)?-(.+)$/);if(!m)return null;return {n:+m[1],d:+m[2],st:m[3]||'cev',pf:m[4]||'bal',id:m[5]};}
   // Position names can contain a dash (UTG+1 is stored as-is), so split on the known shapes.
   function spotName(id,d){
     const push=d<=15,m=id.match(/^(rfi|vs|v3|sq|lp|iso)-(.+)$/);if(!m)return id;
@@ -100,12 +100,13 @@ const PL=(function(){
     return `${pos[0]} vs ${pos[1]} ${push?'shove':'open'}`;
   }
   const STG={bub:'Bubble',ft:'Final table'};
-  const formatName=(n,d,st)=>`${n===2?'Heads-up':n+'-handed'} · ${d}bb${STG[st]?' · '+STG[st]:''}`;
+  const PFN={tight:'vs tight',loose:'vs loose-passive',aggro:'vs aggressive'};
+  const formatName=(n,d,st,pf)=>`${n===2?'Heads-up':n+'-handed'} · ${d}bb${STG[st]?' · '+STG[st]:''}${PFN[pf]?' · '+PFN[pf]:''}`;
   function leaks(s,limit=3){
     return Object.entries(s.per||{}).map(([key,p])=>{const k=parseKey(key)||{};return {key,...k,players:k.n,n:p.n,c:p.c,l:p.l||0,acc:p.c/p.n};})
       .filter(x=>x.id&&x.n>=6&&x.acc<0.85)
       .sort((a,b)=>(b.n-b.c)-(a.n-a.c)||a.acc-b.acc).slice(0,limit)
-      .map(x=>({...x,name:spotName(x.id,x.d),format:formatName(x.players,x.d,x.st)}));
+      .map(x=>({...x,name:spotName(x.id,x.d),format:formatName(x.players,x.d,x.st,x.pf)}));
   }
 
   // ---------- recording an answer (trainer and daily) ----------

@@ -44,7 +44,7 @@
 </section>
 <div class="wrap">
   <nav class="toc" aria-label="On this page">
-    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#opponents">Opponent types</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
   </nav>
   <article class="prose">
     <h2 id="format">The format</h2>
@@ -104,6 +104,16 @@
       <li>Everyone is equally deep, as in every other chart. With uneven stacks the big stacks can push harder and the short stacks call tighter still.</li>
     </ul>
     <p>The pattern: players behind call much tighter, so shoves from late position get far wider, and calling off a stack takes a much stronger hand than the pot odds alone suggest.</p>
+
+    <h2 id="opponents">Opponent types</h2>
+    <p>Balanced charts assume opponents who play well. Real tables don’t, so Pro lets you pick who you’re up against, and every chart becomes the best counter to that type:</p>
+    <ul>
+      <li><b>Tight (nits):</b> open, 3-bet and call less, and fold too much. Steal more and respect their raises.</li>
+      <li><b>Loose-passive (calling stations):</b> play too many hands, limp and call too much, rarely raise. Value-bet more, bluff less, iso-raise their limps.</li>
+      <li><b>Aggressive (LAGs):</b> open, 3-bet and shove wide. Defend and continue wider, open a bit tighter.</li>
+      <li><b>Mixed:</b> a new type every hand, shown on the opponents’ seats, the way a real table changes.</li>
+    </ul>
+    <p>At 10bb and 15bb the charts are the <b>exact best response</b> to opponents whose shoving and calling ranges are the balanced Nash ranges made tighter or wider (tight: about 35% fewer shoves and calls; loose-passive: 10% fewer shoves, 60% more calls; aggressive: 45% more shoves, 15% more calls), solved with the same equity table. Deeper, the opponents’ ranges are scaled the same way and your ranges are modeled against them. Exploiting a type is only right when the read is right: against unknown players, use the balanced charts.</p>
 
     <h2 id="cost">What a mistake costs</h2>
     <p>Every wrong answer shows what it cost in big blinds, and the <a href="/review/">mistake review</a> adds them up so you can fix the expensive leaks first.</p>

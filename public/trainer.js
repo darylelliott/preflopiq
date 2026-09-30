@@ -6,6 +6,10 @@ let mode=store.get('pft-mode','all');
 let tough=store.get('pft-tough',false);
 let focus=store.get('pft-focus',null);   // drill one spot: {n,d,id,st}
 STAGE=store.get('pic-stage','cev');
+// Opponents: a fixed type for the whole table, or 'mixed' (a new type every hand).
+const OPP_MODES={bal:'Balanced',tight:'Tight',loose:'Loose-passive',aggro:'Aggressive',mixed:'Mixed'};
+let oppMode=store.get('pic-opp','bal');if(!OPP_MODES[oppMode])oppMode='bal';
+PROFILE=oppMode==='mixed'?'bal':oppMode;
 const CLOCK_SECONDS=7;
 const statKey=s=>`${fmtKey()}-${s.id}`;
 let cur=null,answered=false,lastKey='',clockTimer=null,tickTimer=null,foldTimer=null;
@@ -14,7 +18,7 @@ let cur=null,answered=false,lastKey='',clockTimer=null,tickTimer=null,foldTimer=
 (function(){
   const q=new URLSearchParams(location.search).get('drill');
   const p=q&&PL.parseKey(q);
-  if(p&&TABLES[p.n]&&DEPTHS.includes(p.d)){focus=p;N=p.n;D=p.d;STAGE=p.st||'cev';store.set('pft-focus',focus);store.set('pft-n',N);store.set('pft-d',D);store.set('pic-stage',STAGE);}
+  if(p&&TABLES[p.n]&&DEPTHS.includes(p.d)){focus=p;N=p.n;D=p.d;STAGE=p.st||'cev';PROFILE=p.pf||'bal';store.set('pft-focus',focus);store.set('pft-n',N);store.set('pft-d',D);store.set('pic-stage',STAGE);}
   // A format link from the mastery map (/?fmt=6-25) switches table size and stack.
   const f=(new URLSearchParams(location.search).get('fmt')||'').match(/^(\d)-(\d+)$/);
   if(f&&TABLES[+f[1]]&&DEPTHS.includes(+f[2])){N=+f[1];D=+f[2];focus=null;store.set('pft-focus',null);store.set('pft-n',N);store.set('pft-d',D);}
@@ -42,8 +46,9 @@ function renderSetup(){
   $('stack').innerHTML=DEPTHS.map(d=>`<button id="st-${d}" data-d="${d}" aria-pressed="${d===D}">${d}bb</button>`).join('');
   const os=isPush()?'every open is a shove':`opens to ${openSize('CO')}bb`;
   $('stageseg').hidden=!(isPush()&&N>=3);
+  $('opp').innerHTML=Object.entries(OPP_MODES).map(([k,v])=>`<button data-opp="${k}" aria-pressed="${k===oppMode}"${icmOn()&&k!=='bal'?' disabled title="Opponent types apply in chip-EV play; the bubble and final table use the ICM solution"':''}>${v}</button>`).join('');
   $('stage').innerHTML=Object.entries(STAGES).map(([k,v])=>`<button data-st="${k}" aria-pressed="${k===(icmOn()?STAGE:'cev')}">${v}</button>`).join('');
-  $('sub').textContent=`${N===2?'Heads-up':N+'-handed'} tournament · ${D}bb effective · 1bb big-blind ante · ${os} · ${isPush()?(icmOn()?`${STAGES[STAGE]} ICM solution`:'Nash-solved ranges'):'modeled ranges'}`;
+  $('sub').textContent=`${N===2?'Heads-up':N+'-handed'} tournament · ${D}bb effective · 1bb big-blind ante · ${os} · ${isPush()?(icmOn()?`${STAGES[STAGE]} ICM solution`:'Nash-solved ranges'):'modeled ranges'}${oppMode==='mixed'?' · mixed opponents':profOn()?' · vs '+PROFILES[PROFILE].name.toLowerCase():''}`;
   $('m-vs').textContent=isPush()?'Facing a shove':'Facing a raise';
   $('cfg').textContent=`· ${N===2?'heads-up':N+'-handed'}, ${D}bb`;
 }
@@ -76,7 +81,7 @@ function renderModes(){
   $('focusbar').hidden=!focus&&!review;
   if(review){const left=(stats.miss||[]).filter(m=>!m.c).length;
     $('focusbar').innerHTML=`<span><span class="eyebrow">Reviewing mistakes</span> <b>${left} left</b> · a miss clears when you get it right</span><button class="btn ghost" id="stopreview" type="button">Stop reviewing</button>`;return;}
-  if(focus)$('focusbar').innerHTML=`<span><span class="eyebrow">Drilling</span> <b>${PL.spotName(focus.id,focus.d)}</b> · ${PL.formatName(focus.n,focus.d,focus.st)}</span><button class="btn ghost" id="stopdrill" type="button">Stop drilling</button>`;
+  if(focus)$('focusbar').innerHTML=`<span><span class="eyebrow">Drilling</span> <b>${PL.spotName(focus.id,focus.d)}</b> · ${PL.formatName(focus.n,focus.d,focus.st,focus.pf)}</span><button class="btn ghost" id="stopdrill" type="button">Stop drilling</button>`;
 }
 function renderBanner(){
   const day=DAILY.today(),done=(PL.LS.get('pic-daily',{})[day]||{}).done;
@@ -99,7 +104,7 @@ function nextReview(){
   const list=(stats.miss||[]).filter(m=>!m.c).sort((a,b)=>(review.seen[a.t]||0)-(review.seen[b.t]||0)||b.l-a.l);
   for(const m of list){
     const p=PL.parseKey(m.f+'-'+m.id);
-    if(p){N=p.n;D=p.d;STAGE=p.st;buildScenarios();const s=SCN.find(x=>x.id===m.id);if(s&&(!s.range||s.range.has(m.k))){review.cur=m;renderSetup();return {s,k:m.k};}}
+    if(p){N=p.n;D=p.d;STAGE=p.st;PROFILE=p.pf;buildScenarios();const s=SCN.find(x=>x.id===m.id);if(s&&(!s.range||s.range.has(m.k))){review.cur=m;renderSetup();return {s,k:m.k};}}
     m.c=1;   // the spot no longer exists
   }
   return null;
@@ -109,7 +114,7 @@ function reviewDone(){
   $('actions').innerHTML='';$('next').hidden=true;$('cards').innerHTML='';$('spotLabel').textContent='';$('prompt').textContent='';
   $('panel').innerHTML=`<div class="verdict ok"><h2>All caught up</h2></div><p>Every saved mistake has been answered correctly. New misses will show up in your <a href="/review/">mistake review</a>.</p><button class="btn" id="endreview" type="button">Back to the trainer</button>`;
 }
-function stopReview(){if(!review)return;review=null;N=store.get('pft-n',8);D=store.get('pft-d',100);STAGE=store.get('pic-stage','cev');}
+function stopReview(){if(!review)return;review=null;N=store.get('pft-n',8);D=store.get('pft-d',100);STAGE=store.get('pic-stage','cev');PROFILE=oppMode==='mixed'?'bal':oppMode;}
 function deal(){
   stopClock();
   if(window.PIQ&&PIQ.locked()){showPaywall();return;}
@@ -118,7 +123,10 @@ function deal(){
     $('focusbar').innerHTML='<span><span class="eyebrow">Pro</span> Drilling your saved mistakes is part of Pro.</span><a class="btn ghost" href="/pricing/">See Pro</a>';}
   let s,k,tries=0;
   if(review){const r=nextReview();if(!r){renderModes();reviewDone();return;}({s,k}=r);renderModes();}
-  else do{s=pickScenario();const src=(tough||focus||Math.random()<0.6)?s.border:s.pool;k=src[Math.floor(Math.random()*src.length)];tries++;}while(s.id+k===lastKey&&tries<10);
+  else{
+    // Mixed table: a new opponent type each hand (a quarter of hands against balanced players).
+    if(oppMode==='mixed'&&!focus){const t=['bal','tight','loose','aggro'][Math.floor(Math.random()*4)];if(t!==PROFILE){PROFILE=t;buildScenarios();}}
+  do{s=pickScenario();const src=(tough||focus||Math.random()<0.6)?s.border:s.pool;k=src[Math.floor(Math.random()*src.length)];tries++;}while(s.id+k===lastKey&&tries<10);}
   lastKey=s.id+k;cur={s,k,rev:review?review.cur:null};answered=false;
   $('felt').innerHTML=TBL.felt(s);
   $('cards').innerHTML=TBL.cards(k);
@@ -176,6 +184,7 @@ $('actions').addEventListener('click',e=>{const b=e.target.closest('.act');if(b)
 $('next').addEventListener('click',deal);
 $('players').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;N=+b.dataset.n;store.set('pft-n',N);clearFocus(false);applyConfig();});
 $('stack').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;D=+b.dataset.d;store.set('pft-d',D);clearFocus(false);applyConfig();});
+$('opp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;oppMode=b.dataset.opp;store.set('pic-opp',oppMode);PROFILE=oppMode==='mixed'?'bal':oppMode;clearFocus(false);applyConfig();});
 $('stage').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;STAGE=b.dataset.st;store.set('pic-stage',STAGE);clearFocus(false);applyConfig();});
 document.querySelectorAll('.modes .chip[data-mode]').forEach(c=>c.addEventListener('click',()=>{mode=c.dataset.mode;store.set('pft-mode',mode);clearFocus(false);renderModes();renderStats();deal();}));
 $('tough').addEventListener('change',e=>{tough=e.target.checked;store.set('pft-tough',tough);if(!answered)deal();});

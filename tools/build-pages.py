@@ -72,7 +72,7 @@ tb = re.sub(r'<p class="foot">.*?</p>',
   '<p class="foot">10bb and 15bb ranges are solved Nash equilibria; 25bb and deeper are modeled. <a href="/how-it-works/#ranges">How the ranges are built</a>.</p>', tb, flags=re.S)
 (root / 'index.html').write_text(page('/', 'Preflop IQ · Tournament Preflop Trainer',
   'Drill tournament preflop ranges for 2-9 players and 10-100bb stacks. Nash-solved push/fold ranges, an explanation after every hand, and a Preflop IQ score.',
-  tb, PLAYER + ['/pro-data.js', '/table.js', '/daily-core.js', '/trainer.js']))
+  tb, PLAYER + ['/pro-data.js', '/profiles-data.js', '/table.js', '/daily-core.js', '/trainer.js']))
 
 # ---------- charts ----------
 charts_body = '''
@@ -85,6 +85,7 @@ charts_body = '''
   <div class="setup">
     <div class="seg" role="group" aria-labelledby="lbl-players"><span class="seglbl" id="lbl-players">Players</span><div class="segbtns" id="players"></div></div>
     <div class="seg" role="group" aria-labelledby="lbl-stack"><span class="seglbl" id="lbl-stack">Stack</span><div class="segbtns" id="stack"></div></div>
+    <div class="seg" id="oppseg" role="group" aria-labelledby="lbl-opp"><span class="seglbl" id="lbl-opp">Opponents <span class="protag">Pro</span></span><div class="segbtns" id="opp"></div></div>
     <div class="seg" id="stageseg" role="group" aria-labelledby="lbl-stage" hidden><span class="seglbl" id="lbl-stage">Stage</span><div class="segbtns" id="stage"></div></div>
   </div>
   <div class="spotpick" id="spots"></div>
@@ -101,7 +102,7 @@ charts_body = '''
 (root / 'charts' ).mkdir(exist_ok=True)
 (root / 'charts' / 'index.html').write_text(page('/charts/', 'Range Charts · Preflop IQ',
   'Browse tournament preflop range charts for 2-9 players and 10-100bb stacks: opens, shoves, 3-bets and calls, with an explanation for every hand.',
-  charts_body, ['/engine.js', '/pro-data.js', '/charts.js']))
+  charts_body, ['/engine.js', '/pro-data.js', '/profiles-data.js', '/charts.js']))
 
 # ---------- how it works ----------
 how = '''
@@ -112,7 +113,7 @@ how = '''
     <p class="lede">Preflop IQ tests one decision at a time: the first action you make before the flop in a tournament. Here's the game it models, how every chart is built, and how your score is calculated.</p>
   </div>
   <nav class="toc" aria-label="On this page">
-    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
+    <a href="#format">The format</a><a href="#spots">The spots</a><a href="#ranges">How ranges are built</a><a href="#opponents">Opponent types</a><a href="#cost">Mistake costs</a><a href="#score">Your Preflop IQ</a><a href="#using">Using the trainer</a><a href="#daily">Daily and ranks</a><a href="#glossary">Glossary</a>
   </nav>
   <article class="prose">
     <h2 id="format">The format</h2>
@@ -172,6 +173,16 @@ how = '''
       <li>Everyone is equally deep, as in every other chart. With uneven stacks the big stacks can push harder and the short stacks call tighter still.</li>
     </ul>
     <p>The pattern: players behind call much tighter, so shoves from late position get far wider, and calling off a stack takes a much stronger hand than the pot odds alone suggest.</p>
+
+    <h2 id="opponents">Opponent types</h2>
+    <p>Balanced charts assume opponents who play well. Real tables don’t, so Pro lets you pick who you’re up against, and every chart becomes the best counter to that type:</p>
+    <ul>
+      <li><b>Tight (nits):</b> open, 3-bet and call less, and fold too much. Steal more and respect their raises.</li>
+      <li><b>Loose-passive (calling stations):</b> play too many hands, limp and call too much, rarely raise. Value-bet more, bluff less, iso-raise their limps.</li>
+      <li><b>Aggressive (LAGs):</b> open, 3-bet and shove wide. Defend and continue wider, open a bit tighter.</li>
+      <li><b>Mixed:</b> a new type every hand, shown on the opponents’ seats, the way a real table changes.</li>
+    </ul>
+    <p>At 10bb and 15bb the charts are the <b>exact best response</b> to opponents whose shoving and calling ranges are the balanced Nash ranges made tighter or wider (tight: about 35% fewer shoves and calls; loose-passive: 10% fewer shoves, 60% more calls; aggressive: 45% more shoves, 15% more calls), solved with the same equity table. Deeper, the opponents’ ranges are scaled the same way and your ranges are modeled against them. Exploiting a type is only right when the read is right: against unknown players, use the balanced charts.</p>
 
     <h2 id="cost">What a mistake costs</h2>
     <p>Every wrong answer shows what it cost in big blinds, and the <a href="/review/">mistake review</a> adds them up so you can fix the expensive leaks first.</p>
@@ -324,6 +335,7 @@ pricing = """
         <li>Unlimited trainer hands at every table size and stack depth</li>
         <li><b>3-bet pots:</b> facing a 3-bet, squeezes, and blind-versus-blind limped pots</li>
         <li><b>Bubble and final table:</b> push/fold ranges solved for payout pressure (ICM)</li>
+        <li><b>Opponent types:</b> charts that exploit tight, loose-passive and aggressive players, or a mixed table</li>
         <li><b>Mistake review:</b> what every miss cost in big blinds, your costliest spots, and a drill that replays your misses until you get them right</li>
         <li>The chart explorer for every format and spot, with the reasoning for every hand</li>
         <li>Progress synced to your account across devices</li>
@@ -454,7 +466,7 @@ review = """
 (root / 'review').mkdir(exist_ok=True)
 (root / 'review' / 'index.html').write_text(page('/review/', 'Mistake Review · Preflop IQ',
   'Review your preflop mistakes by what they cost in big blinds, replay each hand with its chart, and drill the ones you keep missing.', review,
-  PLAYER + ['/pro-data.js', '/table.js', '/review.js'], nav_path='/progress/'))
+  PLAYER + ['/pro-data.js', '/profiles-data.js', '/table.js', '/review.js'], nav_path='/progress/'))
 
 # ---------- owner admin (not linked, not indexed; /api/admin checks ADMIN_EMAILS) ----------
 admin = """

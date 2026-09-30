@@ -795,3 +795,10 @@ details.danger p{margin:8px 0}
 .billing{border-top:1px solid var(--line);padding-top:12px;margin-top:4px;display:flex;flex-direction:column;gap:8px}
 .billing h3{font-size:1.1rem;margin:0}
 .billing .btn{align-self:flex-start}
+
+/* ---------- opponent types ---------- */
+.ptag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-weight:700;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:0 6px;border-radius:999px;white-space:nowrap;line-height:1.5;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ptag.tight{background:#6b7a86;color:#fff}
+.ptag.loose{background:var(--call);color:var(--call-ink)}
+.ptag.aggro{background:var(--raise);color:var(--raise-ink)}
+.segbtns button:disabled{opacity:.45;cursor:not-allowed}

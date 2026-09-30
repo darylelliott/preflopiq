@@ -20,7 +20,7 @@ const DAILY=(function(){
 
   // Returns {day, number, hands:[{n,d,spot,hand}]}. Leaves N and D as they were.
   function forDay(day){
-    const r=rng('preflopiq-daily-'+day),saveN=N,saveD=D,saveS=STAGE,hands=[],seen=new Set();STAGE='cev';
+    const r=rng('preflopiq-daily-'+day),saveN=N,saveD=D,saveS=STAGE,saveP=PROFILE,hands=[],seen=new Set();STAGE='cev';PROFILE='bal';
     for(let i=0;hands.length<COUNT&&i<200;i++){
       N=pick(r,PLAYERS);D=pick(r,STACKS);buildScenarios();
       const s=pick(r,SCN.filter(x=>!x.pro));   // the daily sticks to opens and facing a raise
@@ -29,16 +29,16 @@ const DAILY=(function(){
       if(seen.has(key))continue;
       seen.add(key);hands.push({n:N,d:D,spot:s.id,hand});
     }
-    N=saveN;D=saveD;STAGE=saveS;buildScenarios();
+    N=saveN;D=saveD;STAGE=saveS;PROFILE=saveP;buildScenarios();
     return {day,number:number(day),hands};
   }
   // The chart's answer for one daily hand. Leaves N and D set to that hand's format.
-  function load(h){N=h.n;D=h.d;STAGE='cev';buildScenarios();const s=SCN.find(x=>x.id===h.spot);return {s,right:actionOf(s,h.hand)};}
+  function load(h){N=h.n;D=h.d;STAGE='cev';PROFILE='bal';buildScenarios();const s=SCN.find(x=>x.id===h.spot);return {s,right:actionOf(s,h.hand)};}
   // Scores a list of picks against the day's chart answers.
   function score(day,picks){
-    const saveN=N,saveD=D,saveS=STAGE,set=forDay(day);
+    const saveN=N,saveD=D,saveS=STAGE,saveP=PROFILE,set=forDay(day);
     const marks=set.hands.map((h,i)=>{const {right}=load(h);return picks[i]===right?1:0;});
-    N=saveN;D=saveD;STAGE=saveS;buildScenarios();
+    N=saveN;D=saveD;STAGE=saveS;PROFILE=saveP;buildScenarios();
     return {score:marks.reduce((a,b)=>a+b,0),marks};
   }
   return {COUNT,today,number,valid,forDay,load,score,rng};

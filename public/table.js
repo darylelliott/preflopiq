@@ -18,13 +18,14 @@ const TBL=(function(){
     names.forEach((p,i)=>{
       const k=(i-h+N)%N,a=(90+step*k)*Math.PI/180;
       const x=50+46*Math.cos(a),y=50+43*Math.sin(a),st=ss[p];
-      html+=`<div class="seat ${st}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"><span class="pos">${p}</span><span class="stk">${st==='hero'?`You · ${D}bb`:st==='folded'?'folded':D+'bb'}</span></div>`;
+      const tag=profOn()&&st!=='hero'&&st!=='folded'?`<span class="ptag ${PROFILE}">${PROFILES[PROFILE].tag}</span>`:'';
+      html+=`<div class="seat ${st}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%">${tag}<span class="pos">${p}</span><span class="stk">${st==='hero'?`You · ${D}bb`:st==='folded'?'folded':D+'bb'}</span></div>`;
       const bet=st==='folded'?null:bb[p];
       if(bet!==undefined&&bet!==null){const cx=50+29*Math.cos(a),cy=50+25*Math.sin(a);html+=`<div class="bet ${st==='open'?'raise':st==='called'?'called':''}" style="left:${cx.toFixed(2)}%;top:${cy.toFixed(2)}%">${bet}</div>`;}
       if(p==='BTN'){const b=a-(N<=3?0.5:0.34);html+=`<div class="dealer" style="left:${(50+35*Math.cos(b)).toFixed(2)}%;top:${(50+31*Math.sin(b)).toFixed(2)}%">D</div>`;}
     });
     const pot=s.type==='rfi'?2.5:s.pot;
-    html+=`<div class="center"><div class="fmt">${N===2?'Heads-up':N+'-max'} · ${D}bb${icmOn()?' · '+STAGES[STAGE]:''}</div><div class="pot">Pot ${pot}bb</div><div class="potnote">incl. 1bb ante</div></div>`;
+    html+=`<div class="center"><div class="fmt">${N===2?'Heads-up':N+'-max'} · ${D}bb${icmOn()?' · '+STAGES[STAGE]:''}${profOn()?` · vs ${PROFILES[PROFILE].tag}s`:''}</div><div class="pot">Pot ${pot}bb</div><div class="potnote">incl. 1bb ante</div></div>`;
     return html;
   }
   // rand: a function returning 0..1 (seeded for the daily, so suits stay the same on reload).

@@ -2,6 +2,7 @@
 const $=id=>document.getElementById(id);
 let spotId=store.get('pic-chart-spot','rfi-UTG');
 STAGE=store.get('pic-stage','cev');
+PROFILE=store.get('pic-opp','bal');if(!PROFILES[PROFILE])PROFILE='bal';   // 'mixed' in the trainer shows balanced charts here
 // Links from the range library open a specific chart: /charts/?fmt=8-100&spot=vs-BB-BTN
 (function(){
   const q=new URLSearchParams(location.search),f=(q.get('fmt')||'').match(/^(\d)-(\d+)$/);
@@ -13,12 +14,12 @@ let selected=null;
 
 // Free users can study 8-handed 100bb opens and calls; every other format, 3-bet pots and the
 // bubble and final-table charts are Pro.
-const chartLocked=()=>!!(window.PIQ&&PIQ.paywallOn()&&(!(N===8&&D===100)||current().pro||icmOn()));
+const chartLocked=()=>!!(window.PIQ&&PIQ.paywallOn()&&(!(N===8&&D===100)||current().pro||icmOn()||profOn()));
 function renderLock(){
   const locked=chartLocked(),s=current();
   $('chartcard').classList.toggle('locked',locked);
   $('chartlock').hidden=!locked;
-  const what=s.pro?`${s.name} is a Pro chart`:icmOn()?`${STAGES[STAGE]} charts are Pro`:`${N===2?'Heads-up':N+'-handed'} at ${D}bb is a Pro chart`;
+  const what=s.pro?`${s.name} is a Pro chart`:profOn()?`Charts against ${PROFILES[PROFILE].name.toLowerCase()} are Pro`:icmOn()?`${STAGES[STAGE]} charts are Pro`:`${N===2?'Heads-up':N+'-handed'} at ${D}bb is a Pro chart`;
   if(locked) $('chartlock').innerHTML=`<div class="lockbox"><span class="eyebrow">Pro chart</span>
     <h3>${what}</h3>
     <p>Free accounts can study the 8-handed 100bb opening and calling charts. Pro unlocks every table size and stack, 3-bet pots and squeezes, bubble and final-table charts, plus unlimited trainer hands.</p>
@@ -31,6 +32,7 @@ function renderSetup(){
   $('players').innerHTML=[2,3,4,5,6,7,8,9].map(n=>`<button id="pl-${n}" data-n="${n}" aria-pressed="${n===N}" aria-label="${n} players">${n}</button>`).join('');
   $('stack').innerHTML=DEPTHS.map(d=>`<button id="st-${d}" data-d="${d}" aria-pressed="${d===D}">${d}bb</button>`).join('');
   $('stageseg').hidden=!(isPush()&&N>=3);
+  $('opp').innerHTML=Object.entries(PROFILES).map(([k,v])=>`<button data-opp="${k}" aria-pressed="${k===PROFILE}"${icmOn()&&k!=='bal'?' disabled':''}>${v.short}</button>`).join('');
   $('stage').innerHTML=Object.entries(STAGES).map(([k,v])=>`<button data-st="${k}" aria-pressed="${k===(icmOn()?STAGE:'cev')}">${v}</button>`).join('');
 }
 function renderSpots(){
@@ -78,6 +80,7 @@ function apply(){buildScenarios();renderSetup();renderSpots();renderChart();}
 $('players').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;N=+b.dataset.n;store.set('pft-n',N);apply();});
 $('stack').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;D=+b.dataset.d;store.set('pft-d',D);apply();});
 $('spots').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;spotId=b.dataset.spot;store.set('pic-chart-spot',spotId);renderSpots();renderChart();});
+$('opp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;PROFILE=b.dataset.opp;store.set('pic-opp',PROFILE);apply();});
 $('stage').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;STAGE=b.dataset.st;store.set('pic-stage',STAGE);apply();});
 $('chartlock').addEventListener('click',e=>{if(e.target.id!=='unlock-free')return;N=8;D=100;if(current().pro){spotId='rfi-UTG';store.set('pic-chart-spot',spotId);}store.set('pft-n',N);store.set('pft-d',D);apply();});
 $('detail').addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;spotId=b.dataset.goto;store.set('pic-chart-spot',spotId);renderSpots();renderChart();});

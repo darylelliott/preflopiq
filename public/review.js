@@ -11,8 +11,8 @@ const LBL={fold:'Fold',call:'Call',limp:'Limp',check:'Check',raise:'Raise','3bet
 // Runs fn with the engine set to a saved format ("8-10ft"), then puts everything back.
 function inFormat(f,fn){
   const p=PL.parseKey(f+'-x');if(!p)return null;
-  const save=[N,D,STAGE];N=p.n;D=p.d;STAGE=p.st;buildScenarios();
-  try{return fn(p);}finally{[N,D,STAGE]=save;buildScenarios();}
+  const save=[N,D,STAGE,PROFILE];N=p.n;D=p.d;STAGE=p.st;PROFILE=p.pf;buildScenarios();
+  try{return fn(p);}finally{[N,D,STAGE,PROFILE]=save;buildScenarios();}
 }
 function ago(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return `${m} min ago`;const h=Math.round(m/60);if(h<24)return `${h} hr ago`;const d=Math.round(h/24);return `${d} day${d===1?'':'s'} ago`;}
 
@@ -33,7 +33,7 @@ function renderSpots(){
     .sort((a,b)=>b.l-a.l).slice(0,8);
   if(!rows.length){$('r-spots').innerHTML='<p class="hint">No chips lost yet. Mistakes show up here with their cost.</p>';return;}
   const max=rows[0].l;
-  $('r-spots').innerHTML=`<ol class="leaks">${rows.map(x=>`<li><div><b>${PL.spotName(x.id,x.d)}</b><span>${PL.formatName(x.n,x.d,x.st)}</span></div>
+  $('r-spots').innerHTML=`<ol class="leaks">${rows.map(x=>`<li><div><b>${PL.spotName(x.id,x.d)}</b><span>${PL.formatName(x.n,x.d,x.st,x.pf)}</span></div>
     <div class="leakacc"><div class="bar"><span class="low" style="width:${Math.round(x.l/max*100)}%"></span></div><b>${fmtBB(x.l)}</b><span>${x.miss} missed of ${x.hands}</span></div>
     <a class="btn ghostbtn" href="/?drill=${encodeURIComponent(x.key)}">Drill</a></li>`).join('')}</ol>`;
 }
@@ -43,7 +43,7 @@ function missRow(m,i){
   return `<li class="miss${m.c?' cleared':''}${open===m.t?' open':''}" data-t="${m.t}">
     <button class="missbtn" type="button" aria-expanded="${open===m.t}">
       <span class="hk">${esc(m.k)}</span>
-      <span class="mwhat"><b>${PL.spotName(m.id,p.d)}</b><small>${PL.formatName(p.n,p.d,p.st)} · ${ago(m.t)}${m.src==='d'?' · daily':''}${m.c?' · cleared':''}</small></span>
+      <span class="mwhat"><b>${PL.spotName(m.id,p.d)}</b><small>${PL.formatName(p.n,p.d,p.st,p.pf)} · ${ago(m.t)}${m.src==='d'?' · daily':''}${m.c?' · cleared':''}</small></span>
       <span class="mpick">You: <b>${LBL[m.p]||m.p}</b><br>Chart: <b>${LBL[m.r]||m.r}</b></span>
       <span class="mcost${m.l>=1?' big':''}"><b>${fmtBB(m.l)}</b><small>${m.x?'exact':'estimate'}</small></span>
     </button>
