@@ -7,5 +7,5 @@ window.PIQ_CONFIG = {
   supabaseUrl: 'https://pupddxyrckkyrorkmqld.supabase.co',
   // the legacy "anon" key (public; row-level security decides what it can read)
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1cGRkeHlyY2treXJvcmttcWxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MTY5OTYsImV4cCI6MjEwNjI5Mjk5Nn0.ogErRrxc8AN_YWXdnW-whJNDGEj24bjtk9zY-_fZbKs',
-  payments: false        // true once Stripe and the Cloudflare secrets are in place (SETUP.md step 2-3)
+  payments: true         // paywall and Pro plans on (Stripe live mode)
 };
